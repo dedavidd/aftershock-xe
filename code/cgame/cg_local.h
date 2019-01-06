@@ -1753,6 +1753,43 @@ extern vmCvar_t			cg_multiview4_width;
 extern vmCvar_t			cg_multiview4_height;
 extern vmCvar_t			cg_multiview4_client;
 
+
+extern vmCvar_t			cg_multiview5_xpos;
+extern vmCvar_t			cg_multiview5_ypos;
+extern vmCvar_t			cg_multiview5_width;
+extern vmCvar_t			cg_multiview5_height;
+extern vmCvar_t			cg_multiview5_client;
+
+extern vmCvar_t			cg_multiview6_xpos;
+extern vmCvar_t			cg_multiview6_ypos;
+extern vmCvar_t			cg_multiview6_width;
+extern vmCvar_t			cg_multiview6_height;
+extern vmCvar_t			cg_multiview6_client;
+
+extern vmCvar_t			cg_multiview7_xpos;
+extern vmCvar_t			cg_multiview7_ypos;
+extern vmCvar_t			cg_multiview7_width;
+extern vmCvar_t			cg_multiview7_height;
+extern vmCvar_t			cg_multiview7_client;
+
+extern vmCvar_t			cg_multiview8_xpos;
+extern vmCvar_t			cg_multiview8_ypos;
+extern vmCvar_t			cg_multiview8_width;
+extern vmCvar_t			cg_multiview8_height;
+extern vmCvar_t			cg_multiview8_client;
+
+extern vmCvar_t			cg_multiview9_xpos;
+extern vmCvar_t			cg_multiview9_ypos;
+extern vmCvar_t			cg_multiview9_width;
+extern vmCvar_t			cg_multiview9_height;
+extern vmCvar_t			cg_multiview9_client;
+
+extern vmCvar_t			cg_multiview0_xpos;
+extern vmCvar_t			cg_multiview0_ypos;
+extern vmCvar_t			cg_multiview0_width;
+extern vmCvar_t			cg_multiview0_height;
+extern vmCvar_t			cg_multiview0_client;
+
 extern vmCvar_t			g_aftershockPhysic;
 
 extern vmCvar_t			cg_inverseTimer;

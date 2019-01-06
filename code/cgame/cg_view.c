@@ -840,10 +840,46 @@ static void CG_SetMultiviewRect( int j ) {
         cg.refdef.height = cg_multiview3_height.integer * cgs.screenYScale;
         break;
     case 4:
-        cg.refdef.x = cg_multiview4_xpos.integer * cgs.screenXScale;
-        cg.refdef.y = cg_multiview4_ypos.integer * cgs.screenYScale;
-        cg.refdef.width = cg_multiview4_width.integer * cgs.screenXScale;
+        cg.refdef.x      = cg_multiview4_xpos.integer * cgs.screenXScale;
+        cg.refdef.y      = cg_multiview4_ypos.integer * cgs.screenYScale;
+        cg.refdef.width  = cg_multiview4_width.integer * cgs.screenXScale;
         cg.refdef.height = cg_multiview4_height.integer * cgs.screenYScale;
+        break;
+    case 5:
+        cg.refdef.x      = cg_multiview5_xpos.integer * cgs.screenXScale;
+        cg.refdef.y      = cg_multiview5_ypos.integer * cgs.screenYScale;
+        cg.refdef.width  = cg_multiview5_width.integer * cgs.screenXScale;
+        cg.refdef.height = cg_multiview5_height.integer * cgs.screenYScale;
+        break;
+    case 6:
+        cg.refdef.x      = cg_multiview6_xpos.integer * cgs.screenXScale;
+        cg.refdef.y      = cg_multiview6_ypos.integer * cgs.screenYScale;
+        cg.refdef.width  = cg_multiview6_width.integer * cgs.screenXScale;
+        cg.refdef.height = cg_multiview6_height.integer * cgs.screenYScale;
+        break;
+    case 7:
+        cg.refdef.x      = cg_multiview7_xpos.integer * cgs.screenXScale;
+        cg.refdef.y      = cg_multiview7_ypos.integer * cgs.screenYScale;
+        cg.refdef.width  = cg_multiview7_width.integer * cgs.screenXScale;
+        cg.refdef.height = cg_multiview7_height.integer * cgs.screenYScale;
+        break;
+    case 8:
+        cg.refdef.x      = cg_multiview8_xpos.integer * cgs.screenXScale;
+        cg.refdef.y      = cg_multiview8_ypos.integer * cgs.screenYScale;
+        cg.refdef.width  = cg_multiview8_width.integer * cgs.screenXScale;
+        cg.refdef.height = cg_multiview8_height.integer * cgs.screenYScale;
+        break;
+    case 9:
+        cg.refdef.x      = cg_multiview9_xpos.integer * cgs.screenXScale;
+        cg.refdef.y      = cg_multiview9_ypos.integer * cgs.screenYScale;
+        cg.refdef.width  = cg_multiview9_width.integer * cgs.screenXScale;
+        cg.refdef.height = cg_multiview9_height.integer * cgs.screenYScale;
+        break;
+    case 10:
+        cg.refdef.x      = cg_multiview0_xpos.integer * cgs.screenXScale;
+        cg.refdef.y      = cg_multiview0_ypos.integer * cgs.screenYScale;
+        cg.refdef.width  = cg_multiview0_width.integer * cgs.screenXScale;
+        cg.refdef.height = cg_multiview0_height.integer * cgs.screenYScale;
         break;
     }
 }
@@ -1242,9 +1278,10 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
         cg.refdef.y = 0;
         cg.refdef.width = 640 * cgs.screenXScale;
         cg.refdef.height = 480 * cgs.screenYScale;
+        CG_Draw2D(stereoView);
+    } else {
+        CG_Draw2D(stereoView);
     }
-
-    CG_Draw2D(stereoView);
 
     //---------------------------Multiview end----------------------
 

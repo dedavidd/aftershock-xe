@@ -377,6 +377,42 @@ vmCvar_t	cg_multiview4_width;
 vmCvar_t	cg_multiview4_height;
 vmCvar_t	cg_multiview4_client;
 
+vmCvar_t	cg_multiview5_xpos;
+vmCvar_t	cg_multiview5_ypos;
+vmCvar_t	cg_multiview5_width;
+vmCvar_t	cg_multiview5_height;
+vmCvar_t	cg_multiview5_client;
+
+vmCvar_t	cg_multiview6_xpos;
+vmCvar_t	cg_multiview6_ypos;
+vmCvar_t	cg_multiview6_width;
+vmCvar_t	cg_multiview6_height;
+vmCvar_t	cg_multiview6_client;
+
+vmCvar_t	cg_multiview7_xpos;
+vmCvar_t	cg_multiview7_ypos;
+vmCvar_t	cg_multiview7_width;
+vmCvar_t	cg_multiview7_height;
+vmCvar_t	cg_multiview7_client;
+
+vmCvar_t	cg_multiview8_xpos;
+vmCvar_t	cg_multiview8_ypos;
+vmCvar_t	cg_multiview8_width;
+vmCvar_t	cg_multiview8_height;
+vmCvar_t	cg_multiview8_client;
+
+vmCvar_t	cg_multiview9_xpos;
+vmCvar_t	cg_multiview9_ypos;
+vmCvar_t	cg_multiview9_width;
+vmCvar_t	cg_multiview9_height;
+vmCvar_t	cg_multiview9_client;
+
+vmCvar_t	cg_multiview0_xpos;
+vmCvar_t	cg_multiview0_ypos;
+vmCvar_t	cg_multiview0_width;
+vmCvar_t	cg_multiview0_height;
+vmCvar_t	cg_multiview0_client;
+
 vmCvar_t	g_aftershockPhysic;
 
 vmCvar_t	cg_inverseTimer;
@@ -678,6 +714,44 @@ static cvarTable_t cvarTable[] = { // bk001129
 	{&cg_multiview4_width, "cg_multiview4_width", "200", CVAR_ARCHIVE },
 	{&cg_multiview4_height, "cg_multiview4_height", "160", CVAR_ARCHIVE },
 	{&cg_multiview4_client, "cg_multiview2_client", "-1", CVAR_TEMP },
+
+	{&cg_multiview5_xpos,   "cg_multiview5_xpos",     "0", CVAR_ARCHIVE },
+	{&cg_multiview5_ypos,   "cg_multiview5_ypos",   "160", CVAR_ARCHIVE },
+	{&cg_multiview5_width,  "cg_multiview5_width",  "200", CVAR_ARCHIVE },
+	{&cg_multiview5_height, "cg_multiview5_height", "160", CVAR_ARCHIVE },
+	{&cg_multiview5_client, "cg_multiview5_client", "-1", CVAR_TEMP },
+	
+	{&cg_multiview6_xpos,   "cg_multiview6_xpos",     "0", CVAR_ARCHIVE },
+	{&cg_multiview6_ypos,   "cg_multiview6_ypos",   "160", CVAR_ARCHIVE },
+	{&cg_multiview6_width,  "cg_multiview6_width",  "200", CVAR_ARCHIVE },
+	{&cg_multiview6_height, "cg_multiview6_height", "160", CVAR_ARCHIVE },
+	{&cg_multiview6_client, "cg_multiview6_client", "-1", CVAR_TEMP },
+	
+	{&cg_multiview7_xpos,   "cg_multiview7_xpos",     "0", CVAR_ARCHIVE },
+	{&cg_multiview7_ypos,   "cg_multiview7_ypos",   "160", CVAR_ARCHIVE },
+	{&cg_multiview7_width,  "cg_multiview7_width",  "200", CVAR_ARCHIVE },
+	{&cg_multiview7_height, "cg_multiview7_height", "160", CVAR_ARCHIVE },
+	{&cg_multiview7_client, "cg_multiview7_client", "-1", CVAR_TEMP },
+	
+	{&cg_multiview8_xpos,   "cg_multiview8_xpos",   "220", CVAR_ARCHIVE },
+	{&cg_multiview8_ypos,   "cg_multiview8_ypos",   "320", CVAR_ARCHIVE },
+	{&cg_multiview8_width,  "cg_multiview8_width",  "200", CVAR_ARCHIVE },
+	{&cg_multiview8_height, "cg_multiview8_height", "160", CVAR_ARCHIVE },
+	{&cg_multiview8_client, "cg_multiview8_client", "-1", CVAR_TEMP },
+	
+	{&cg_multiview9_xpos,   "cg_multiview9_xpos",   "220", CVAR_ARCHIVE },
+	{&cg_multiview9_ypos,   "cg_multiview9_ypos",     "0", CVAR_ARCHIVE },
+	{&cg_multiview9_width,  "cg_multiview9_width",  "200", CVAR_ARCHIVE },
+	{&cg_multiview9_height, "cg_multiview9_height", "160", CVAR_ARCHIVE },
+	{&cg_multiview9_client, "cg_multiview9_client", "-1", CVAR_TEMP },
+	
+	{&cg_multiview0_xpos,   "cg_multiview0_xpos",     "0", CVAR_ARCHIVE },
+	{&cg_multiview0_ypos,   "cg_multiview0_ypos",     "0", CVAR_ARCHIVE },
+	{&cg_multiview0_width,  "cg_multiview0_width",  "200", CVAR_ARCHIVE },
+	{&cg_multiview0_height, "cg_multiview0_height", "160", CVAR_ARCHIVE },
+	{&cg_multiview0_client, "cg_multiview0_client", "-1", CVAR_TEMP },
+	
+	
 	{&g_aftershockPhysic, "g_aftershockPhysic", "0", CVAR_SYSTEMINFO },
 	{&cg_inverseTimer, "cg_inverseTimer", "0", CVAR_ARCHIVE },
 	{&cg_grenadeTrail, "cg_grenadeTrail", "1", CVAR_ARCHIVE },
