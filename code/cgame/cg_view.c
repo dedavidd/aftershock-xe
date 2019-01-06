@@ -884,28 +884,42 @@ static void CG_SetMultiviewRect( int j ) {
     }
 }
 
-static qboolean CG_EntityNumIsAllowed( int i ) {
+static qboolean CG_EntityNumAmongHandPicked( int i ) {
     if ( cg_multiview.integer < 2 )
-        return qfalse;
-    else if ( cg_multiview.integer == 2 ) {
+        return qtrue;
+    if ( cg_multiview.integer >= 2 ) {
         if ( cg_multiview2_client.integer == i )
-            return qfalse;
+            return qtrue;
     }
-    else if ( cg_multiview.integer == 3 ) {
-        if ( cg_multiview2_client.integer == i )
-            return qfalse;
+    if ( cg_multiview.integer >= 3 ) {
         if ( cg_multiview3_client.integer == i )
-            return qfalse;
+            return qtrue;
     }
-    else {
-        if ( cg_multiview2_client.integer == i )
-            return qfalse;
-        if ( cg_multiview3_client.integer == i )
-            return qfalse;
+    if ( cg_multiview.integer >= 4 ) {
         if ( cg_multiview4_client.integer == i )
-            return qfalse;
+            return qtrue;
     }
-    return qtrue;
+    if ( cg_multiview.integer >= 5 ) {
+        if ( cg_multiview5_client.integer == i )
+            return qtrue;
+    }
+    if ( cg_multiview.integer >= 6 ) {
+        if ( cg_multiview6_client.integer == i )
+            return qtrue;
+    }
+    if ( cg_multiview.integer >= 7 ) {
+        if ( cg_multiview7_client.integer == i )
+            return qtrue;
+    }
+    if ( cg_multiview.integer >= 8 ) {
+        if ( cg_multiview8_client.integer == i )
+            return qtrue;
+    }
+    if ( cg_multiview.integer >= 9 ) {
+        if ( cg_multiview9_client.integer == i )
+            return qtrue;
+    }
+    return qfalse;
 }
 
 static int start;
@@ -928,18 +942,33 @@ static int CG_GetEntityNumForMV( int window ) {
     case 4:
         clientNum = cg_multiview4_client.integer;
         break;
+    case 5:
+        clientNum = cg_multiview5_client.integer;
+        break;
+    case 6:
+        clientNum = cg_multiview6_client.integer;
+        break;
+    case 7:
+        clientNum = cg_multiview7_client.integer;
+        break;
+    case 8:
+        clientNum = cg_multiview8_client.integer;
+        break;
+    case 9:
+        clientNum = cg_multiview9_client.integer;
+        break;
     default:
         return -1;
     }
     } else {
-        if ( window<2 || window>4 ) {
+        if ( window<2 || window>9 ) {
           return -1;
         }
     }
 
     if ( clientNum == -1 ) {
         for ( i = start; i < cg.snap->numEntities; i++ ) {
-            if ( ( cg.snap->entities[i].eType == ET_PLAYER ) && ( cg.snap->ps.clientNum != cg.snap->entities[i].clientNum ) && CG_EntityNumIsAllowed( cg.snap->entities[i].clientNum ) ) {
+            if ( ( cg.snap->entities[i].eType == ET_PLAYER ) && ( cg.snap->ps.clientNum != cg.snap->entities[i].clientNum ) && ( (localPlayer->team != TEAM_SPECTATOR) || !CG_EntityNumAmongHandPicked( cg.snap->entities[i].clientNum ) ) ) {
                 if ( ( localPlayer->team != TEAM_SPECTATOR) && ( cgs.clientinfo[cg.snap->entities[i].clientNum].team != localPlayer->team) )
                     continue;
 
@@ -958,6 +987,43 @@ static int CG_GetEntityNumForMV( int window ) {
     }
     return -1;
 
+}
+
+static void CG_AddSingleMultiviewWindow( stereoFrame_t stereoView , int i, int j) {
+        VectorCopy( cg_entities[cg.snap->entities[i].clientNum].lerpOrigin, cg.refdef.vieworg );
+        AnglesToAxis( cg_entities[cg.snap->entities[i].clientNum].lerpAngles, cg.refdef.viewaxis );
+
+        cg.snap->ps.stats[STAT_HEALTH] = cgs.clientinfo[cg.snap->entities[i].clientNum].health;
+        cg.snap->ps.stats[STAT_ARMOR] = cgs.clientinfo[cg.snap->entities[i].clientNum].armor;
+        cg.snap->ps.persistant[PERS_TEAM] = cgs.clientinfo[cg.snap->entities[i].clientNum].team;
+        cg_entities[cg.snap->ps.clientNum].currentState.weapon = cg.snap->entities[i].weapon;
+
+
+        cg.refdef.vieworg[2] += cg.predictedPlayerState.viewheight;
+
+        if (j!=10) {
+            // cg_multiview0_xpos 
+            //Show the main-spec model in the MV-windows
+            cg.renderingThirdPerson = qtrue;
+        }
+
+        // build the render lists
+        if ( !cg.hyperspace ) {
+            CG_AddPacketEntities( cg.snap->entities[i].clientNum );			// adter calcViewValues, so predicted player state is correct
+            CG_AddMarks();
+            CG_AddParticles ();
+            CG_AddLocalEntities();
+        }
+        // actually issue the rendering calls
+        CG_DrawActive( stereoView, qfalse );
+        if (j!=10) {
+            // cg_multiview0_xpos 
+          CG_DrawMVDhud(stereoView);
+        } else {
+          CG_Draw2D(stereoView);
+        }
+
+	CG_DrawStringHud ( HUD_FOLLOW, qtrue, va ( "following %i %s", i, cgs.clientinfo[ cg.snap->entities[i].clientNum ].name ) );
 }
 
 static void CG_AddMultiviewWindow( stereoFrame_t stereoView ) {
@@ -979,7 +1045,7 @@ static void CG_AddMultiviewWindow( stereoFrame_t stereoView ) {
     team = cg.snap->ps.persistant[PERS_TEAM];
     weapon = cg_entities[cg.snap->ps.clientNum].currentState.weapon;
 
-    while ( j <= 4 && j <= cg_multiview.integer ) {
+    while ( j <= 9 && j <= cg_multiview.integer ) {
         i = CG_GetEntityNumForMV(j);
         CG_SetMultiviewRect(j);
         j++;
@@ -987,32 +1053,7 @@ static void CG_AddMultiviewWindow( stereoFrame_t stereoView ) {
         if ( i == -1 )
             continue;
 
-        VectorCopy( cg_entities[cg.snap->entities[i].clientNum].lerpOrigin, cg.refdef.vieworg );
-        AnglesToAxis( cg_entities[cg.snap->entities[i].clientNum].lerpAngles, cg.refdef.viewaxis );
-
-        cg.snap->ps.stats[STAT_HEALTH] = cgs.clientinfo[cg.snap->entities[i].clientNum].health;
-        cg.snap->ps.stats[STAT_ARMOR] = cgs.clientinfo[cg.snap->entities[i].clientNum].armor;
-        cg.snap->ps.persistant[PERS_TEAM] = cgs.clientinfo[cg.snap->entities[i].clientNum].team;
-        cg_entities[cg.snap->ps.clientNum].currentState.weapon = cg.snap->entities[i].weapon;
-
-
-        cg.refdef.vieworg[2] += cg.predictedPlayerState.viewheight;
-
-        //Show the main-spec model in the MV-windows
-        cg.renderingThirdPerson = qtrue;
-
-        // build the render lists
-        if ( !cg.hyperspace ) {
-            CG_AddPacketEntities( cg.snap->entities[i].clientNum );			// adter calcViewValues, so predicted player state is correct
-            CG_AddMarks();
-            CG_AddParticles ();
-            CG_AddLocalEntities();
-        }
-        // actually issue the rendering calls
-        CG_DrawActive( stereoView, qfalse );
-        CG_DrawMVDhud(stereoView);
-
-	CG_DrawStringHud ( HUD_FOLLOW, qtrue, va ( "following %s", cgs.clientinfo[ cg.snap->entities[i].clientNum ].name ) );
+        CG_AddSingleMultiviewWindow( stereoView , i, j);
     }
 
     //Set everything back to the main-spec values

@@ -722,13 +722,13 @@ static cvarTable_t cvarTable[] = { // bk001129
 	{&cg_multiview5_client, "cg_multiview5_client", "-1", CVAR_TEMP },
 	
 	{&cg_multiview6_xpos,   "cg_multiview6_xpos",     "0", CVAR_ARCHIVE },
-	{&cg_multiview6_ypos,   "cg_multiview6_ypos",   "160", CVAR_ARCHIVE },
+	{&cg_multiview6_ypos,   "cg_multiview6_ypos",     "0", CVAR_ARCHIVE },
 	{&cg_multiview6_width,  "cg_multiview6_width",  "200", CVAR_ARCHIVE },
 	{&cg_multiview6_height, "cg_multiview6_height", "160", CVAR_ARCHIVE },
 	{&cg_multiview6_client, "cg_multiview6_client", "-1", CVAR_TEMP },
 	
 	{&cg_multiview7_xpos,   "cg_multiview7_xpos",     "0", CVAR_ARCHIVE },
-	{&cg_multiview7_ypos,   "cg_multiview7_ypos",   "160", CVAR_ARCHIVE },
+	{&cg_multiview7_ypos,   "cg_multiview7_ypos",   "320", CVAR_ARCHIVE },
 	{&cg_multiview7_width,  "cg_multiview7_width",  "200", CVAR_ARCHIVE },
 	{&cg_multiview7_height, "cg_multiview7_height", "160", CVAR_ARCHIVE },
 	{&cg_multiview7_client, "cg_multiview7_client", "-1", CVAR_TEMP },
@@ -745,8 +745,8 @@ static cvarTable_t cvarTable[] = { // bk001129
 	{&cg_multiview9_height, "cg_multiview9_height", "160", CVAR_ARCHIVE },
 	{&cg_multiview9_client, "cg_multiview9_client", "-1", CVAR_TEMP },
 	
-	{&cg_multiview0_xpos,   "cg_multiview0_xpos",     "0", CVAR_ARCHIVE },
-	{&cg_multiview0_ypos,   "cg_multiview0_ypos",     "0", CVAR_ARCHIVE },
+	{&cg_multiview0_xpos,   "cg_multiview0_xpos",   "220", CVAR_ARCHIVE },
+	{&cg_multiview0_ypos,   "cg_multiview0_ypos",   "160", CVAR_ARCHIVE },
 	{&cg_multiview0_width,  "cg_multiview0_width",  "200", CVAR_ARCHIVE },
 	{&cg_multiview0_height, "cg_multiview0_height", "160", CVAR_ARCHIVE },
 	{&cg_multiview0_client, "cg_multiview0_client", "-1", CVAR_TEMP },
