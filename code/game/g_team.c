@@ -2594,16 +2594,19 @@ void ShuffleTeams(void) {
 		numPlayers++;
 
         if ( level.clients[sortPlayers[i]].sess.sessionTeam==TEAM_RED || level.clients[sortPlayers[i]].sess.sessionTeam==TEAM_BLUE ) {
-            level.clients[sortPlayers[i]].sess.sessionTeam = nextTeam;
+            if ( level.clients[sortPlayers[i]].sess.sessionTeam != nextTeam) {
+                level.clients[sortPlayers[i]].sess.sessionTeam = nextTeam;
+                ClientUserinfoChanged( sortPlayers[i] );
+                //ClientBegin( sortPlayers[i] );
+                //trap_SendServerCommand( sortPlayers[i], "loadModel" );
+            }
             count++;
-            G_Printf("%i\n", nextTeam);
+            //G_Printf("%i\n", nextTeam);
             if ( nextTeam == TEAM_RED )
                 nextTeam = TEAM_BLUE;
             else if ( nextTeam == TEAM_BLUE)
                 nextTeam = TEAM_RED;
 
-            ClientUserinfoChanged( sortPlayers[i] );
-            ClientBegin( sortPlayers[i] );
         }
     }
 
@@ -2681,7 +2684,7 @@ void ShuffleTeams(void) {
 
 			level.clients[newBlueTeam[i]].sess.sessionTeam = TEAM_RED;
 			ClientUserinfoChanged(newBlueTeam[i]);
-			ClientBegin(newBlueTeam[i]);
+			//ClientBegin(newBlueTeam[i]);
 			break;
 		}
 
@@ -2696,7 +2699,7 @@ void ShuffleTeams(void) {
 
 			level.clients[newRedTeam[i]].sess.sessionTeam = TEAM_BLUE;
 			ClientUserinfoChanged(newRedTeam[i]);
-			ClientBegin(newRedTeam[i]);
+			//ClientBegin(newRedTeam[i]);
 			break;
 		}
 	}

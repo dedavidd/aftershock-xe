@@ -743,6 +743,8 @@ void CG_InitConsoleCommands( void ) {
 	// the game server will interpret these commands, which will be automatically
 	// forwarded to the server after they are not recognized locally
 	//
+  // look in ../game/g_cmds.c at the end for a list of interpreted commands
+  //
 	trap_AddCommand ("kill");
 	trap_AddCommand ("say");
 	trap_AddCommand ("say_team");
@@ -764,6 +766,7 @@ void CG_InitConsoleCommands( void ) {
 	trap_AddCommand ("addbot");
 	trap_AddCommand ("setviewpos");
 	trap_AddCommand ("callvote");
+	trap_AddCommand ("coinflip");
 	trap_AddCommand ("getmappage");
 	trap_AddCommand ("vote");
 	trap_AddCommand ("callteamvote");
@@ -775,4 +778,57 @@ void CG_InitConsoleCommands( void ) {
 	trap_AddCommand ("listplayers");
 	trap_AddCommand ("mapcycle");
 	trap_AddCommand ("forfeit");
+
+  // added without testing
+  trap_AddCommand("freespectator");
+  trap_AddCommand("getmappage");
+  trap_AddCommand("gc");
+  trap_AddCommand("timeout");
+  trap_AddCommand("ready");
+  trap_AddCommand("droppowerup");
+  trap_AddCommand("dropammo");
+  trap_AddCommand("droparmor");
+  trap_AddCommand("drophealth");
+  trap_AddCommand("dropweapon");
+  trap_AddCommand("dropflag");
+  trap_AddCommand("drop");
+  trap_AddCommand("lock");
+  trap_AddCommand("unlock");
+  trap_AddCommand("ref");
+  trap_AddCommand("listplayers");
+  trap_AddCommand("mapcycle");
+  trap_AddCommand("mute");
+  trap_AddCommand("unmute");
+  trap_AddCommand("forfeit");
+  trap_AddCommand("zoomed");
 }
+
+/*
+ * from game/g_cmds.c
+ *
+ * cat /tmp/bla.txt  | cut -d '"' -f 2 |sed -e 's/^.*$/trap_AddCommand("\0");/g' >> code/cgame/cg_consolecmds.c
+ *
+    { "freespectator", CMD_NOTEAM, StopFollowing, qfalse },
+    { "getmappage", 0, Cmd_GetMappage_f, qfalse },
+    { "gc", 0, Cmd_GameCommand_f, qfalse },
+    { "timeout", 0, Cmd_Timeout_f, qfalse },
+    { "ready", 0, Cmd_Ready_f, qfalse },
+    { "droppowerup", 0, Cmd_DropPowerup_f, qfalse },
+    { "dropammo", 0, Cmd_DropAmmo_f, qfalse },
+    { "droparmor", 0, Cmd_DropArmor_f, qfalse },
+    { "drophealth", 0, Cmd_DropHealth_f, qfalse },
+    { "dropweapon", 0, Cmd_DropWeapon_f, qfalse },
+    { "dropflag", 0, Cmd_DropFlag_f, qfalse },
+    { "drop", 0, Cmd_Drop_f, qfalse },
+    { "lock", 0, Cmd_Lock_f, qfalse },
+    { "unlock", 0, Cmd_Unlock_f, qfalse },
+    { "ref", 0, Cmd_Ref_f, qfalse },
+    { "listplayers", 0, Cmd_Listplayers_f, qfalse },
+    { "mapcycle", 0, Cmd_Listmapcycle_f, qfalse },
+    { "mute", 0, Cmd_Mute_f, qfalse },
+    { "unmute", 0, Cmd_Unmute_f, qfalse },
+    { "forfeit", 0, Cmd_Forfeit_f, qfalse },
+    { "zoomed", 0, Cmd_Zoomed_f, qfalse }
+
+
+    */

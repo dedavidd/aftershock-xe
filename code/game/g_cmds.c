@@ -1208,6 +1208,35 @@ void G_Timein( void ) {
 
 /*
 =================
+Cmd_Coinflip_f
+=================
+*/
+void Cmd_Coinflip_f( gentity_t *ent ) {
+    //char string[20];
+
+    //if ( level.warmupTime != -1 )
+      //  return;
+
+    //string = "Heads"; // gives compiler error
+    //string = "Tails";
+
+    if (rand() % 2) {
+    //if ( g_startWhenReady.integer == 3 ) {
+        trap_SendServerCommand(-1,va("screenPrint \"Coinflip called by %s" S_COLOR_WHITE " resulted in %s\"",ent->client->pers.netname , S_COLOR_BLUE "H" S_COLOR_GREEN "eads")  );
+        trap_SendServerCommand(-1,va("print \"Coinflip called by %s" S_COLOR_WHITE " resulted in %s\"" ,ent->client->pers.netname, S_COLOR_BLUE "H" S_COLOR_GREEN "eads\n" ));
+       // return;
+    //}
+    } else {
+        trap_SendServerCommand(-1,va("screenPrint \"Coinflip called by %s" S_COLOR_WHITE " resulted in %s\"",ent->client->pers.netname , S_COLOR_RED "T" S_COLOR_GREEN "ails")  );
+        trap_SendServerCommand(-1,va("print \"Coinflip called by %s" S_COLOR_WHITE " resulted in %s\"" ,ent->client->pers.netname, S_COLOR_RED "T" S_COLOR_GREEN "ails\n" ));
+    }
+
+
+}
+
+
+/*
+=================
 Cmd_Ready_f
 =================
 */
@@ -1275,6 +1304,7 @@ int SetTeam( gentity_t *ent, char *s ) {
     char	            userinfo[MAX_INFO_STRING];
     qboolean            force;
 	int ret = 0;
+  int i = 0;
 
     force = G_admin_permission(ent, ADMF_FORCETEAMCHANGE);
 
@@ -1372,9 +1402,22 @@ int SetTeam( gentity_t *ent, char *s ) {
     }
 
     //
-    // decide if we will allow the change
+    // make sure we have correct persistant/preserved score
     //
     oldTeam = client->sess.sessionTeam;
+    if (oldTeam == TEAM_SPECTATOR) {
+        // restore persistant
+					for(i = 0; i < MAX_PERSISTANT; i++)
+						ent->client->ps.persistant[i] = ent->client->preservedScore[i];
+    } 
+    if (team == TEAM_SPECTATOR) {
+        // store persistant
+					for(i = 0; i < MAX_PERSISTANT; i++)
+						ent->client->preservedScore[i] = ent->client->ps.persistant[i];
+    }
+    //
+    // decide if we will allow the change
+    //
     if ( team == oldTeam ) {
 		if( team == TEAM_SPECTATOR ) {
 			// If a player is spec and rejoins as spec he gets
@@ -3822,6 +3865,8 @@ void Cmd_Zoomed_f(gentity_t *ent) {
 //KK-OAX This is the table that ClientCommands runs the console entry against.
 commands_t cmds[ ] =
 {
+    // format:
+    // { commandstring, cmdFlags, callback function , floodlimited }
     // normal commands
     { "team", 0, Cmd_Team_f, qtrue },
     { "vote", 0, Cmd_Vote_f, qtrue },
@@ -3832,6 +3877,7 @@ commands_t cmds[ ] =
     { "tell", CMD_MESSAGE, Cmd_Tell_f, qtrue },
     { "callvote", CMD_MESSAGE, Cmd_CallVote_f, qtrue },
     { "callteamvote", CMD_MESSAGE|CMD_TEAM, Cmd_CallTeamVote_f, qtrue },
+    { "coinflip", CMD_MESSAGE , Cmd_Coinflip_f, qtrue },
     // can be used even during intermission
     { "say", CMD_MESSAGE|CMD_INTERMISSION, Cmd_Say_f, qtrue },
     { "say_team", CMD_MESSAGE|CMD_INTERMISSION, Cmd_Say_f, qtrue },

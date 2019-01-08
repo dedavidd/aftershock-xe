@@ -1836,11 +1836,11 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	
         client->pers.adminLevel = G_admin_level( ent );
 	client->pers.connected = CON_CONNECTING;
+  memset(&client->ps.persistant,0,sizeof(client->ps.persistant));
 
 	// read or initialize the session data
 	if ( firstTime || level.newSession ) {
 		G_InitSessionData( client, userinfo );
-    memset(&client->ps.persistant,0,sizeof(client->ps.persistant));
 	}
 	G_ReadSessionData( client );
 
@@ -2924,6 +2924,9 @@ void ClientDisconnect( int clientNum ) {
 		BotAIShutdownClient( clientNum, qfalse );
 	}
 	
+  memset(&ent->client->ps.persistant,0,sizeof(ent->client->ps.persistant));
+	ent->client->ps.persistant[PERS_TEAM] = TEAM_FREE;
+
 	SendReadymask( -1 );
 }
 
