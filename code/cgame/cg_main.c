@@ -733,22 +733,22 @@ static cvarTable_t cvarTable[] = { // bk001129
 	{&cg_multiview7_height, "cg_multiview7_height", "160", CVAR_ARCHIVE },
 	{&cg_multiview7_client, "cg_multiview7_client", "-1", CVAR_TEMP },
 	
-	{&cg_multiview8_xpos,   "cg_multiview8_xpos",   "220", CVAR_ARCHIVE },
-	{&cg_multiview8_ypos,   "cg_multiview8_ypos",   "320", CVAR_ARCHIVE },
-	{&cg_multiview8_width,  "cg_multiview8_width",  "200", CVAR_ARCHIVE },
-	{&cg_multiview8_height, "cg_multiview8_height", "160", CVAR_ARCHIVE },
+	{&cg_multiview8_xpos,   "cg_multiview8_xpos",   "200", CVAR_ARCHIVE },
+	{&cg_multiview8_ypos,   "cg_multiview8_ypos",   "330", CVAR_ARCHIVE },
+	{&cg_multiview8_width,  "cg_multiview8_width",  "240", CVAR_ARCHIVE },
+	{&cg_multiview8_height, "cg_multiview8_height", "150", CVAR_ARCHIVE },
 	{&cg_multiview8_client, "cg_multiview8_client", "-1", CVAR_TEMP },
 	
-	{&cg_multiview9_xpos,   "cg_multiview9_xpos",   "220", CVAR_ARCHIVE },
+	{&cg_multiview9_xpos,   "cg_multiview9_xpos",   "200", CVAR_ARCHIVE },
 	{&cg_multiview9_ypos,   "cg_multiview9_ypos",     "0", CVAR_ARCHIVE },
-	{&cg_multiview9_width,  "cg_multiview9_width",  "200", CVAR_ARCHIVE },
-	{&cg_multiview9_height, "cg_multiview9_height", "160", CVAR_ARCHIVE },
+	{&cg_multiview9_width,  "cg_multiview9_width",  "240", CVAR_ARCHIVE },
+	{&cg_multiview9_height, "cg_multiview9_height", "150", CVAR_ARCHIVE },
 	{&cg_multiview9_client, "cg_multiview9_client", "-1", CVAR_TEMP },
 	
-	{&cg_multiview0_xpos,   "cg_multiview0_xpos",   "220", CVAR_ARCHIVE },
-	{&cg_multiview0_ypos,   "cg_multiview0_ypos",   "160", CVAR_ARCHIVE },
-	{&cg_multiview0_width,  "cg_multiview0_width",  "200", CVAR_ARCHIVE },
-	{&cg_multiview0_height, "cg_multiview0_height", "160", CVAR_ARCHIVE },
+	{&cg_multiview0_xpos,   "cg_multiview0_xpos",   "200", CVAR_ARCHIVE },
+	{&cg_multiview0_ypos,   "cg_multiview0_ypos",   "150", CVAR_ARCHIVE },
+	{&cg_multiview0_width,  "cg_multiview0_width",  "240", CVAR_ARCHIVE },
+	{&cg_multiview0_height, "cg_multiview0_height", "180", CVAR_ARCHIVE },
 	{&cg_multiview0_client, "cg_multiview0_client", "-1", CVAR_TEMP },
 	
 	

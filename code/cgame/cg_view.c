@@ -825,7 +825,90 @@ static void CG_PlayBufferedSounds( void ) {
 
 //=========================================================================
 
+static int start;
+static int availmv;
+
 static void CG_SetMultiviewRect( int j ) {
+    int xpos=0, ypos=0;
+    int width=0, height=0;;
+    if (cg_multiview.integer == 1337) {
+        if (availmv>4) {
+          width=200;
+          height=160;
+          xpos=440;
+          ypos=320;
+          if (availmv>6) {
+            if (j<=4) {
+              ypos=(j-2)*160;
+            } else if (j<=6) {
+              xpos=0;
+              ypos=(j-5)*160;
+            } else if (j==7) {
+              xpos=200;
+              ypos=0;
+              width=240;
+            } else if (j<=9) {
+              xpos=(j-8)*200;
+              if (j==9) {
+                  width=240;
+              }
+            } else if (j==1337) {
+              xpos=200;
+              ypos=160;
+              width=240;
+            }
+          } else {
+            if (j<=4) {
+              ypos=(j-2)*160;
+            } else if (j<=6) {
+              xpos=(j-5)*200;
+              if (j==6) {
+                width=240;
+              }
+            } else if (j==1337) {
+              xpos=0;
+              ypos=0;
+              width=440;
+              height=320;
+            }
+          }
+        } else if (availmv==4) {
+          width=320;
+          height=240;
+          xpos=0;
+          ypos=0;
+          switch (j) {
+            case 1337:
+              break;
+            case 2:
+              xpos=320;
+              break;
+            case 4:
+              xpos=320;
+              // no break so fall through and also set ypos
+            case 3:
+              ypos=240;
+              break;
+          }
+        } else {
+          if (j==1337) {
+            width=10;
+            height=10;
+            xpos=540;
+            ypos=0;
+          } else {
+          }
+        }
+        
+        cg.refdef.x = xpos * cgs.screenXScale;
+        cg.refdef.y = ypos * cgs.screenYScale;
+        cg.refdef.width = width * cgs.screenXScale;
+        cg.refdef.height = height * cgs.screenYScale;
+        
+        if (availmv>=4) {
+            return;
+        }
+    }
     switch (j) {
     case 2:
         cg.refdef.x = cg_multiview2_xpos.integer * cgs.screenXScale;
@@ -876,6 +959,7 @@ static void CG_SetMultiviewRect( int j ) {
         cg.refdef.height = cg_multiview9_height.integer * cgs.screenYScale;
         break;
     case 10:
+    case 1337:
         cg.refdef.x      = cg_multiview0_xpos.integer * cgs.screenXScale;
         cg.refdef.y      = cg_multiview0_ypos.integer * cgs.screenYScale;
         cg.refdef.width  = cg_multiview0_width.integer * cgs.screenXScale;
@@ -922,7 +1006,6 @@ static qboolean CG_EntityNumAmongHandPicked( int i ) {
     return qfalse;
 }
 
-static int start;
 
 static int CG_GetEntityNumForMV( int window ) {
     int clientNum = -1;
@@ -990,40 +1073,46 @@ static int CG_GetEntityNumForMV( int window ) {
 }
 
 static void CG_AddSingleMultiviewWindow( stereoFrame_t stereoView , int i, int j) {
-        VectorCopy( cg_entities[cg.snap->entities[i].clientNum].lerpOrigin, cg.refdef.vieworg );
-        AnglesToAxis( cg_entities[cg.snap->entities[i].clientNum].lerpAngles, cg.refdef.viewaxis );
 
-        cg.snap->ps.stats[STAT_HEALTH] = cgs.clientinfo[cg.snap->entities[i].clientNum].health;
-        cg.snap->ps.stats[STAT_ARMOR] = cgs.clientinfo[cg.snap->entities[i].clientNum].armor;
-        cg.snap->ps.persistant[PERS_TEAM] = cgs.clientinfo[cg.snap->entities[i].clientNum].team;
-        cg_entities[cg.snap->ps.clientNum].currentState.weapon = cg.snap->entities[i].weapon;
+       
+        if (j!=1337) {
+            VectorCopy( cg_entities[cg.snap->entities[i].clientNum].lerpOrigin, cg.refdef.vieworg );
+            AnglesToAxis( cg_entities[cg.snap->entities[i].clientNum].lerpAngles, cg.refdef.viewaxis );
+
+            cg.snap->ps.stats[STAT_HEALTH] = cgs.clientinfo[cg.snap->entities[i].clientNum].health;
+            cg.snap->ps.stats[STAT_ARMOR] = cgs.clientinfo[cg.snap->entities[i].clientNum].armor;
+            cg.snap->ps.persistant[PERS_TEAM] = cgs.clientinfo[cg.snap->entities[i].clientNum].team;
+            cg_entities[cg.snap->ps.clientNum].currentState.weapon = cg.snap->entities[i].weapon;
 
 
-        cg.refdef.vieworg[2] += cg.predictedPlayerState.viewheight;
-
-        if (j!=10) {
+            cg.refdef.vieworg[2] += cg.predictedPlayerState.viewheight;
             // cg_multiview0_xpos 
             //Show the main-spec model in the MV-windows
             cg.renderingThirdPerson = qtrue;
-        }
+        } 
 
         // build the render lists
         if ( !cg.hyperspace ) {
-            CG_AddPacketEntities( cg.snap->entities[i].clientNum );			// adter calcViewValues, so predicted player state is correct
+            if (j!=1337) {
+                CG_AddPacketEntities( cg.snap->entities[i].clientNum );			// adter calcViewValues, so predicted player state is correct
+            } else {
+                CG_AddPacketEntities( -1 );			// adter calcViewValues, so predicted player state is correct
+                //CG_AddPacketEntities( cg.snap->ps.clientNum );			// adter calcViewValues, so predicted player state is correct
+            }
             CG_AddMarks();
             CG_AddParticles ();
             CG_AddLocalEntities();
         }
         // actually issue the rendering calls
         CG_DrawActive( stereoView, qfalse );
-        if (j!=10) {
+        if (j!=1337) {
             // cg_multiview0_xpos 
           CG_DrawMVDhud(stereoView);
+	        CG_DrawStringHud ( HUD_FOLLOW, qtrue, va ( "following %i %s", i, cgs.clientinfo[ cg.snap->entities[i].clientNum ].name ) );
         } else {
           CG_Draw2D(stereoView);
         }
 
-	CG_DrawStringHud ( HUD_FOLLOW, qtrue, va ( "following %i %s", i, cgs.clientinfo[ cg.snap->entities[i].clientNum ].name ) );
 }
 
 static void CG_AddMultiviewWindow( stereoFrame_t stereoView ) {
@@ -1031,6 +1120,7 @@ static void CG_AddMultiviewWindow( stereoFrame_t stereoView ) {
     int 	j = 2;
     int health, armor, team, weapon;
     int ammo[8];
+    vec3_t main_vieworg,main_viewangles;
 
     start = 0;
 
@@ -1045,7 +1135,34 @@ static void CG_AddMultiviewWindow( stereoFrame_t stereoView ) {
     team = cg.snap->ps.persistant[PERS_TEAM];
     weapon = cg_entities[cg.snap->ps.clientNum].currentState.weapon;
 
-    while ( j <= 9 && j <= cg_multiview.integer ) {
+    VectorCopy( cg.refdef.vieworg, main_vieworg);
+    VectorCopy( cg.refdefViewAngles , main_viewangles);
+
+    availmv = 1;
+
+    if ( cg_multiview.integer == 1337) {
+      // count how many we have
+      availmv = 1;
+      j = 2;
+      while ( j <= 10 && j <= cg_multiview.integer ) {
+        i = CG_GetEntityNumForMV(j);
+        j++;
+        if ( i == -1 )
+            continue;
+        availmv++;
+      }
+      // 1337 will ignore the i argument, and use above values
+      if (availmv>=4) {
+          CG_SetMultiviewRect(1337);
+          CG_AddSingleMultiviewWindow( stereoView , i, 1337);
+      }
+
+      // reset for loop that draws
+      j = 2;
+      start = 0;
+    }
+        
+    while ( j <= 10 && j <= cg_multiview.integer ) {
         i = CG_GetEntityNumForMV(j);
         CG_SetMultiviewRect(j);
         j++;
@@ -1053,7 +1170,7 @@ static void CG_AddMultiviewWindow( stereoFrame_t stereoView ) {
         if ( i == -1 )
             continue;
 
-        CG_AddSingleMultiviewWindow( stereoView , i, j);
+        CG_AddSingleMultiviewWindow( stereoView , i, j-1);
     }
 
     //Set everything back to the main-spec values
@@ -1061,6 +1178,11 @@ static void CG_AddMultiviewWindow( stereoFrame_t stereoView ) {
     cg.snap->ps.stats[STAT_ARMOR] = armor;
     cg.snap->ps.persistant[PERS_TEAM] = team;
     cg_entities[cg.snap->ps.clientNum].currentState.weapon = weapon;
+    VectorCopy( main_vieworg, cg.refdef.vieworg );
+    VectorCopy( main_viewangles, cg.refdefViewAngles );
+    AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
+    cg.renderingThirdPerson = qfalse;
+
 
     for ( i = WP_MACHINEGUN ; i <= WP_BFG; i++ ) {
         cg.snap->ps.ammo[i] = ammo[i-WP_MACHINEGUN];
@@ -1319,7 +1441,9 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
         cg.refdef.y = 0;
         cg.refdef.width = 640 * cgs.screenXScale;
         cg.refdef.height = 480 * cgs.screenYScale;
-        CG_Draw2D(stereoView);
+        if (availmv<4) {
+            CG_Draw2D(stereoView);
+        }
     } else {
         CG_Draw2D(stereoView);
     }

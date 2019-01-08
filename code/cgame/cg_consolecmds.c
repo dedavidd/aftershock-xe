@@ -794,18 +794,24 @@ void CG_InitConsoleCommands( void ) {
   trap_AddCommand("drop");
   trap_AddCommand("lock");
   trap_AddCommand("unlock");
-  trap_AddCommand("ref");
-  trap_AddCommand("listplayers");
-  trap_AddCommand("mapcycle");
   trap_AddCommand("mute");
   trap_AddCommand("unmute");
-  trap_AddCommand("forfeit");
   trap_AddCommand("zoomed");
+
+  trap_AddCommand("acc");
+  trap_AddCommand("follownext");
+  trap_AddCommand("followprev");
+  trap_AddCommand("score");
+  trap_AddCommand("vosay_local");
+  trap_AddCommand("vsay_local");
+  trap_AddCommand("where");
+
 }
 
 /*
  * from game/g_cmds.c
  *
+ * grep "{.*}" ../game/g_cmds.c  > /tmp/bla.txt
  * cat /tmp/bla.txt  | cut -d '"' -f 2 |sed -e 's/^.*$/trap_AddCommand("\0");/g' >> code/cgame/cg_consolecmds.c
  *
     { "freespectator", CMD_NOTEAM, StopFollowing, qfalse },
