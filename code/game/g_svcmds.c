@@ -502,6 +502,11 @@ void GotoOtherServerForce_f( void ) {
 }
 
 void Matchinfo_f( void ) {
+  /*
+   * {"game":{"fraglimit":"0","timelimit":"100","leveltime":"1110575","starttime":"863325","g_gametype":"8","mapname":"spirit3t1","sv_hostname":"^5v^7ihmu^5/^6CA^51^1U^4K","sv_maxclients":"26","g_maxGameClients":"16","sv_fps":"40","g_dowarmup":"1","g_instantgib":"0","capturelimit":"10","g_needpass":"0","g_rockets":"0","g_ruleset":"344968","g_reduceLightningDamage":"1","g_reduceRailDamage":"1","g_reduceMachinegunDamage":"1","scores_red":"7","scores_blue":"1","roundnumber":"9","revision":"326"},"players":[{"name":"^3{^7T^3-^7L^3}^7S^3haman","login":"","hash":"","team":"1","score":"7","frags":"7","death":"1","time":"247"},{"name":"Klodshans85","login":"","hash":"","team":"3","score":"0","frags":"0","death":"0","time":"247"},{"name":"buster","login":"","hash":"","team":"2","score":"1","frags":"1","death":"7","time":"247"}]}
+   *
+   */
+
 	int i;
 	gclient_t *cl;
 	char	str[MAX_INFO_VALUE];
