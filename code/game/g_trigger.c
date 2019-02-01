@@ -273,6 +273,12 @@ void trigger_teleporter_touch(gentity_t *self, gentity_t *other, trace_t *trace)
 
 	dest = G_PickTarget(self->target);
 	if(!dest) {
+    if (level.multiArenaMap && self->r.singleClient > 0) {
+      if (other->client) {
+        G_JoinArena(other,self->r.singleClient);
+      }
+      return;
+    }
 		G_Printf("Couldn't find teleporter destination\n");
 		return;
 	}
@@ -320,6 +326,9 @@ void SP_trigger_teleport( gentity_t *self ) {
 
 	self->s.eType = ET_TELEPORT_TRIGGER;
 	self->touch = trigger_teleporter_touch;
+  if ( level.multiArenaMap ) {
+    G_SpawnInt( "arena", "0", &self->r.singleClient);
+  }
 
 	trap_LinkEntity (self);
 }

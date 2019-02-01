@@ -805,6 +805,8 @@ void CG_InitConsoleCommands( void ) {
   trap_AddCommand("vosay_local");
   trap_AddCommand("vsay_local");
   trap_AddCommand("where");
+  // multimap select arena
+  trap_AddCommand("arena");
 
 }
 

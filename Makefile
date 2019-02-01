@@ -1739,6 +1739,7 @@ Q3GOBJ_ = \
   $(B)/baseq3/game/g_admin.o \
   $(B)/baseq3/game/g_bot.o \
   $(B)/baseq3/game/g_client.o \
+  $(B)/baseq3/game/g_crypt.o \
   $(B)/baseq3/game/g_cmds.o \
   $(B)/baseq3/game/g_cmds_ext.o \
   $(B)/baseq3/game/g_combat.o \
@@ -1801,6 +1802,7 @@ MPGOBJ_ = \
   $(B)/missionpack/game/g_arenas.o \
   $(B)/missionpack/game/g_bot.o \
   $(B)/missionpack/game/g_client.o \
+  $(B)/missionpack/game/g_crypt.o \
   $(B)/missionpack/game/g_cmds.o \
   $(B)/missionpack/game/g_cmds_ext.o \
   $(B)/missionpack/game/g_combat.o \

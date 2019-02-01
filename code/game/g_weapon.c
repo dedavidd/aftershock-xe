@@ -43,6 +43,10 @@ G_AddHitHistory
 */
 void G_AddHitHistory( gclient_t *client, qboolean hit ) {
 	int i;
+  if (!client) {
+    G_Printf("G_AddHitHistory called on non client\n");
+    return;
+  }
 	for( i = MAX_HITS-1; i > 0; i-- )
 		client->lastHits[i] = client->lastHits[i-1];
 	client->lastHits[0] = hit;	

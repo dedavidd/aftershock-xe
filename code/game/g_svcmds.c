@@ -474,6 +474,34 @@ void	ClientKick_f( void ) {
         
 }
 
+void GotoOtherServerForce_f( void ) {
+	char		str[MAX_TOKEN_CHARS];
+	char		otherserver[MAX_TOKEN_CHARS];
+  int i;
+
+	if ( trap_Argc() < 3 ) {
+                G_Printf("Usage: switchserverforce <clientnum or *> <otherserver>\n");
+		return;
+	}
+
+	trap_Argv( 1, str, sizeof( str ) );
+	trap_Argv( 2, otherserver, sizeof( otherserver ) );
+  if ( !strcmp(str,"*") ) {
+    trap_SendServerCommand( -1, va("gotoserverforce %s", otherserver ) );
+    return;
+  } else {
+    for (i = 0; str[i]; i++) {
+      if (str[i] < '0' || str[i] > '9') {
+        G_Printf("not a valid client number: \"%s\"\n",str);
+        return;
+      }
+    }
+
+    i = atoi(str);
+    trap_SendServerCommand( i, va("gotoserverforce %s", otherserver ) );
+  }
+}
+
 void Matchinfo_f( void ) {
 	int i;
 	gclient_t *cl;
@@ -520,9 +548,16 @@ void Matchinfo_f( void ) {
 		if( cl->pers.connected == CON_DISCONNECTED )
 			continue;
 
-		G_Printf(" \"%s\" \"%s\" \"%s\" %i %i %i %i %i", 
+		G_Printf(" \"%s\" \"%s\" \"%s\" %i %i %i %i %i %i %i %i %i %i", 
 			  cl->pers.netname, cl->aftershock_name, cl->aftershock_hash, cl->sess.sessionTeam, cl->ps.persistant[ PERS_SCORE ], 
-			  cl->kills, cl->ps.persistant[ PERS_KILLED ], (int)((level.time - cl->pers.enterTime)/1000) );
+			  cl->kills, cl->ps.persistant[ PERS_KILLED ], (int)((level.time - cl->pers.enterTime)/1000) ,
+					cl->dmgdone,
+					cl->dmgtaken,
+					cl->ps.persistant[PERS_DEFEND_COUNT],
+					cl->ps.persistant[PERS_ASSIST_COUNT],
+					cl->ps.persistant[PERS_CAPTURES]
+       );
+
 	} 
 	G_Printf("\n");
 }
@@ -572,6 +607,8 @@ struct
   //Kicks a player by number in the game logic rather than the server number
   { "clientkick_game", qfalse, ClientKick_f },
   { "matchinfo", qfalse, Matchinfo_f },
+  { "gotootherserverforce", qfalse, GotoOtherServerForce_f },
+  { "switchserverforce", qfalse, GotoOtherServerForce_f },
   { "getmapcycle", qfalse, G_sendMapcycle },
   { "writeMapfile", qfalse, G_WriteMapfile_f },
   { "loadMapfile", qfalse, G_LoadMapfile_f }
@@ -611,3 +648,13 @@ qboolean  ConsoleCommand( void )
   return qfalse;
 }
 
+void G_RegisterOAXcommands( void )
+{
+  int i;
+  for( i = 0; i < sizeof( svcmds ) / sizeof( svcmds[ 0 ] ); i++ ) {
+    // on the clientside this would add tablcompletion and cmdlist
+    // TODO: fix this for server side
+    //trap_AddCommand(svcmds[i].cmd);
+    
+  }
+}

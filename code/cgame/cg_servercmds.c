@@ -1956,6 +1956,20 @@ static void CG_ParseSpawnpoints( void ){
     }
 }
 
+static void CG_GotoServerForce( void ){
+	char		otherserver[MAX_TOKEN_CHARS];
+  char *cmd;
+
+	if ( trap_Argc() < 2 ) {
+                //G_Printf("Usage: gotoOtherServerForce <clientnum or *> <otherserver>\n");
+		return;
+	}
+	trap_Argv( 1, otherserver, sizeof( otherserver ) );
+
+  cmd = va ( "connect %s\n", otherserver );
+  trap_SendConsoleCommand ( cmd );
+}
+
 /*
 =================
 CG_ServerCommand
@@ -2219,6 +2233,11 @@ static void CG_ServerCommand ( void ) {
         return;
     }
 
+    if ( !strcmp ( cmd, "gotoserverforce" ) ) {
+			trap_S_StartLocalSound ( cgs.media.votePassed, CHAN_ANNOUNCER );
+      CG_GotoServerForce();
+      return;
+    }
     CG_Printf ( "Unknown client game command: %s\n", cmd );
 }
 

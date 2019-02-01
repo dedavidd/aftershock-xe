@@ -1,4 +1,41 @@
 # AfterShock XE Changelog
+## 2019-01-21 [Revision 327]
+- Fixed a bug when One Flag Capture's white flag was displayed in other 
+modes on some maps.
+- Fixed a number of multiview bugs.
+- Added TAB completion for a number of console commands.
+- Added `coinflip` command to flip a coin.
+- Fixed a bug when players would get disconnected from a server after 
+`callvote shuffle`
+- Fixed a bug when spectators would accumulate extra deaths.
+- A map will no longer reload instead of restarting when there's no 
+rotation or next map on the rotation is the same map.
+- Added `switchserverforce` command to forcibly switch a client to 
+another server.  
+Usage: `switchserverforce <client number> <ip:port>`.
+- Added Rocket Arena 3 multi-arena maps support.
+  - Use teleporters in the lobby arena on a RA3 map to access other
+  arenas or `arena <number>`.
+  - `g_lockArena <number>` allows forcing everyone into the same arena 
+  and locking it. If it's set to `0` (the default) people will spawn in 
+  the lobby arena and there will be no lock.  
+  `g_lockArena` is votable by default (included in `g_voteNames`).
+  - `callvote <RA3 map name> <arena number>` to vote for a particular
+  arena (it automatically sets `g_lockArena` to the `<number>`
+  you chose), for example `callvote map ra3map20 4`.  
+  If you just do `callvote <RA3 map name>` without specifying a number 
+  of the arena it will keep `g_lockArena` on the same value it used to
+  have.
+  - RA3 map's arena can be added to mapcycle config with `<ra3 map 
+  name> <minimum number of players> <maximum number of players> <arena 
+  number>`, for example `ra3map20 6 10 4`.
+- Added a posibility to use custom votes without the word `custom`.
+So instead of `callvote custom <vote name>` you can do `callvote 
+<vote name>`. For example `callvote ctf` instead of 
+`callvote custom ctf`.
+- Now on `callvote <map name>` a map image is displayed in the top-left 
+corner.
+
 ## 2018-12-22 [Revision 326]
 - Added `g_legacyWeaponAmmo` cvar.
   - When set to `0` weapons you pick up will always add the "standard"
@@ -38,7 +75,7 @@ player was already dead.
   - `g_rocketRate`, `g_rocketDamage`, `g_rocketSplashDamage`,
   `g_rocketSplashRadius`, `g_rocketVelocity`,
   - `g_railRate`, `g_railDamage`, `g_railDamageReduced`,
-  - `g_bfgRate`, `g_bfgDamage`,  `g_bfgSplashDamage`,
+  - `g_bfgRate`, `g_bfgDamage`, `g_bfgSplashDamage`,
   `g_bfgSplashRadius`, `g_bfgVelocity`.
 - Now during a warmup "Warmup" sign is shown instead of bogus round
 time.
@@ -257,6 +294,7 @@ Sets a multiplier for `g_gravity`, default value is `1`.
 gone.
 - Now compiles with GCC-4.8+.
 
+[Revision 327]:https://github.com/Irbyz/aftershock-xe/compare/326...327
 [Revision 326]:https://github.com/Irbyz/aftershock-xe/compare/325...326
 [Revision 325]:https://github.com/Irbyz/aftershock-xe/compare/324...325
 [Revision 324]:https://github.com/Irbyz/aftershock-xe/compare/323...324

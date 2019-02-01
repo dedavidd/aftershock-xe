@@ -28,6 +28,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "g_public.h"
 #include "challenges.h"
 
+
 //==================================================================
 
 // the "gameversion" client command will print this plus compile date
@@ -522,6 +523,7 @@ struct gclient_s {
 	//qboolean	    sendSpawnpoints;
 	int     	numSpectatorClientPortals;
 	gentity_t	*spectatorClientPortals[MAX_SPECTATOR_PORTALS];
+  int       curArena;
 	
 };
 
@@ -677,6 +679,10 @@ typedef struct {
     qboolean captureRedFlagPerfect;
     
     int 	overtimeCount;
+
+    int   multiArenaMap;
+    int   curMultiArenaMap;
+    int   multiArenasWithSpawns;
     
 } level_locals_t;
 
@@ -943,11 +949,22 @@ void CalculateRanks( void );
 gentity_t *SpotWouldTelefrag( gentity_t *spot );
 
 //
+// g_crypt.c
+//
+typedef struct MD5Context {
+	unsigned int  buf[4];
+	unsigned int  bits[2];
+	unsigned char in[64];
+} MD5_CTX;
+
+char *G_MD5String( const char *in );
+//
 // g_svcmds.c
 //
 qboolean	ConsoleCommand( void );
 void G_ProcessIPBans(void);
 qboolean G_FilterPacket (char *from);
+void G_RegisterOAXcommands( void );
 
 //KK-OAX Added this to make accessible from g_svcmds_ext.c
 gclient_t	*ClientForString( const char *s );
@@ -977,6 +994,7 @@ void DominationPointNamesMessage (gentity_t *client);
 void DominationPointStatusMessage( gentity_t *ent );
 void ChallengeMessage( gentity_t *ent, int challengeNumber );
 void SendCustomVoteCommands(int clientNum);
+void G_JoinArena( gentity_t *ent, int newArena );
 
 //
 // g_pweapon.c
@@ -1108,6 +1126,7 @@ void G_drawMapcycle ( gentity_t *ent );
 void G_sendMapcycle( void );
 void G_LoadMapcycle ( void );
 qboolean SkippedChar ( char in );
+int G_GetMapLockArena ( char *map );
 
 //
 // g_mapfiles.c
@@ -1136,7 +1155,7 @@ typedef struct {
     char    command[MAX_CUSTOMCOMMAND]; //The command executed
 } t_customvote;
 
-extern char custom_vote_info[1024];
+extern char custom_vote_info[4096];
 
 extern t_mappage getMappage(int page);
 extern int allowedMap(char *mapname);
@@ -1411,6 +1430,7 @@ extern vmCvar_t	    g_ruleset;
 
 
 extern vmCvar_t	    g_legacyWeaponAmmo;
+extern vmCvar_t	    g_lockArena;
 // Weapon CVARs
 
 // Gauntlet

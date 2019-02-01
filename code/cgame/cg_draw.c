@@ -3778,6 +3778,46 @@ static void CG_DrawSpectator ( void ) {
     }
 }
 
+/*
+=================
+CG_DrawVoteMap
+=================
+*/
+static void CG_DrawVoteMap ( void ) {
+    char	*s;
+    qhandle_t levelshot;
+    char mapstring[32];
+
+    if ( !cgs.voteTime ) {
+        return;
+    }
+    s = strstr(cgs.voteString,"map to: ");
+    if (s) {
+        int i=0;
+        s+=8;
+        Com_sprintf ( mapstring, sizeof ( mapstring ), "%s", s );
+        while (mapstring[i]!=0 && i<32) {
+            if (mapstring[i]=='?' || mapstring[i]==',' ||
+                    mapstring[i]==' ' ||
+                    mapstring[i]==';' ||
+                    mapstring[i]=='\n' ||
+                    mapstring[i]=='\r' 
+               ) {
+                mapstring[i] = 0;
+            } else {
+                i++;
+            }
+        }
+
+        levelshot = trap_R_RegisterShaderNoMip( va( "levelshots/%s.tga", mapstring ) );
+        if ( !levelshot ) {
+                levelshot = trap_R_RegisterShaderNoMip( "menu/art/unknownmap" );
+        }
+        trap_R_SetColor( NULL );
+        CG_DrawPic( 0, 0, 100, 100 , levelshot );
+    }
+}
+
 #define VOTEPOS_X 0
 #define VOTEPOS_Y 58
 
@@ -4340,6 +4380,7 @@ void CG_Draw2D ( stereoFrame_t stereoFrame ) {
     }
 
     CG_DrawDeathNotice();
+    CG_DrawVoteMap();
     CG_DrawChat ( qfalse );
     CG_DrawConsole();
 

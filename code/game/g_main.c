@@ -248,6 +248,7 @@ vmCvar_t     g_disableSpecs;
 
 vmCvar_t     g_friendsThroughWalls;
 vmCvar_t     g_legacyWeaponAmmo;
+vmCvar_t     g_lockArena;
 vmCvar_t     g_allowKill;
 vmCvar_t     g_fadeToBlack;
 
@@ -421,7 +422,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_allowVote, "g_allowVote", "1", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse },
         
         //new in beta 19
-        { &g_voteNames, "g_voteNames", "/map_restart/nextmap/map/g_gametype/kick/clientkick/timelimit/fraglimit/shuffle/ruleset/", CVAR_ARCHIVE, 0, qfalse }, //clientkick g_doWarmup timelimit fraglimit
+        { &g_voteNames, "g_voteNames", "/map_restart/nextmap/map/g_gametype/g_lockArena/kick/clientkick/timelimit/fraglimit/shuffle/ruleset/custom/", CVAR_ARCHIVE, 0, qfalse }, //clientkick g_doWarmup timelimit fraglimit
         { &g_voteGametypes, "g_voteGametypes", "/0/1/3/4/5/6/7/8/9/10/11/12/", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse },
         { &g_voteMaxTimelimit, "g_voteMaxTimelimit", "0", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse },
         { &g_voteMinTimelimit, "g_voteMinTimelimit", "0", CVAR_SERVERINFO | CVAR_ARCHIVE, 0, qfalse },
@@ -601,6 +602,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_friendsThroughWalls, "g_friendsThroughWalls", "0", CVAR_SERVERINFO, 0, qfalse },
 	
 	{ &g_legacyWeaponAmmo, "g_legacyWeaponAmmo", "1", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qfalse },
+	{ &g_lockArena, "g_lockArena", "0", CVAR_ARCHIVE , 0, qfalse },
 	{ &g_allowKill, "g_allowKill", "1", CVAR_SERVERINFO, 0, qfalse },
 	{ &g_fadeToBlack, "g_fadeToBlack", "0", CVAR_SERVERINFO, 0, qfalse },
 	{ &g_spawnProtection, "g_spawnProtection", "0", CVAR_ARCHIVE, 0, qfalse },
@@ -1070,7 +1072,8 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	srand( randomSeed );
 
 	G_RegisterCvars();
-	
+	G_RegisterOAXcommands();
+
     G_UpdateTimestamp();
 	
 	if( restart == 0 ){
@@ -1922,6 +1925,11 @@ void FindIntermissionPoint( void ) {
 
 	// find the intermission spot
 	ent = G_Find (NULL, FOFS(classname), "info_player_intermission");
+  if ( level.multiArenaMap ) {
+    while (ent != NULL && ent->r.singleClient != level.curMultiArenaMap) {
+	    ent = G_Find (ent, FOFS(classname), "info_player_intermission");
+    }
+  }
 	if ( !ent ) {	// the map creator forgot to put in an intermission point...
 		SelectSpawnPoint ( vec3_origin, level.intermission_origin, level.intermission_angle );
 	} else {
@@ -2008,6 +2016,7 @@ void ExitLevel (void) {
 	char d1[MAX_STRING_CHARS];
 	char	command[1024];
 	char    mapname[MAX_MAPNAME];
+	char    nextmapname[MAX_MAPNAME];
 
 	//bot interbreeding
 	BotInterbreedEndMatch();
@@ -2026,17 +2035,39 @@ void ExitLevel (void) {
 	}
 	if( g_useMapcycle.integer ){
 	    trap_Cvar_VariableStringBuffer("mapname", mapname, sizeof(mapname));
-            Com_sprintf(command, sizeof( command ),"map %s\n", G_GetNextMap(mapname));
+      Com_sprintf(nextmapname, sizeof( nextmapname ),"%s", G_GetNextMap(mapname));
+      if( !Q_stricmp( nextmapname, mapname ))  {
+          if ( !level.restarted ) {
+              trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
+              level.restarted = qtrue;
+              level.changemap = NULL;
+              level.intermissiontime = 0;
+          }
+          return;	
+      } else {
+            Com_sprintf(command, sizeof( command ),"map %s\n", nextmapname );
+              trap_Cvar_Set( "g_lockArena", va("%i", G_GetMapLockArena(nextmapname)) );
+      }
 	    trap_SendConsoleCommand( EXEC_APPEND, command );
 	}
 	else {
 	    trap_Cvar_VariableStringBuffer( "nextmap", nextmap, sizeof(nextmap) );
 	    trap_Cvar_VariableStringBuffer( "d1", d1, sizeof(d1) );
 
-	    if( !Q_stricmp( nextmap, "map_restart 0" ) && Q_stricmp( d1, "" ) ) {
-		    trap_Cvar_Set( "nextmap", "vstr d2" );
-		    trap_SendConsoleCommand( EXEC_APPEND, "vstr d1\n" );
-	    } else {
+      if( !Q_stricmp( nextmap, "map_restart 0" ))  {
+          if ( Q_stricmp( d1, "" ) ) {
+              trap_Cvar_Set( "nextmap", "vstr d2" );
+              trap_SendConsoleCommand( EXEC_APPEND, "vstr d1\n" );
+          } else {
+              if ( !level.restarted ) {
+                  trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
+                  level.restarted = qtrue;
+                  level.changemap = NULL;
+                  level.intermissiontime = 0;
+              }
+              return;	
+          }
+      } else {
 		    trap_SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
 	    }
 	}

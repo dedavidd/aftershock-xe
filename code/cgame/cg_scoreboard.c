@@ -415,7 +415,21 @@ static void CG_DrawMapInfo( void ){
 		"DD",
 		"D"
 	};
+    char	*s;
+    qhandle_t levelshot;
+    const char      *info;
 	
+    if (qfalse) 
+    {
+        info = CG_ConfigString( CS_SERVERINFO );
+        s = Info_ValueForKey( info, "mapname" );
+        levelshot = trap_R_RegisterShaderNoMip( va( "levelshots/%s.tga", s ) );
+        if ( !levelshot ) {
+                levelshot = trap_R_RegisterShaderNoMip( "menu/art/unknownmap" );
+        }
+        trap_R_SetColor( NULL );
+        CG_DrawPic( 0, 0, 100, 100 , levelshot );
+    }
 	strcpy( string, strchr( cgs.mapname, '/' ) + 1 );
 	buf = strstr( string, ".bsp");
 	buf[ 0 ] = '\0';
