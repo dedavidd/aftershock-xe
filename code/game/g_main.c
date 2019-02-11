@@ -226,6 +226,7 @@ vmCvar_t     g_statsPath;
 vmCvar_t     g_teamLock;
 vmCvar_t     g_redLocked;
 vmCvar_t     g_blueLocked;
+vmCvar_t     g_redrover;
 
 vmCvar_t     g_reduceRailDamage;
 vmCvar_t     g_reduceLightningDamage;
@@ -240,6 +241,7 @@ vmCvar_t     g_muteSpec;
 
 vmCvar_t     g_mapcycle;
 vmCvar_t     g_useMapcycle;
+vmCvar_t     g_mapcycleposition;
 
 vmCvar_t     g_allowMultiview;
 //vmCvar_t     g_demoState;
@@ -584,6 +586,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_teamLock, "g_teamLock", "0", CVAR_SERVERINFO |CVAR_NORESTART, 0, qfalse },
 	{ &g_redLocked, "g_redLocked", "0", CVAR_SERVERINFO | CVAR_NORESTART, 0, qfalse },
 	{ &g_blueLocked, "g_blueLocked", "0", CVAR_SERVERINFO | CVAR_NORESTART, 0, qfalse },
+	{ &g_redrover, "g_redrover", "0", CVAR_ARCHIVE  , 0, qfalse },
 
 	{ &g_reduceRailDamage, "g_reduceRailDamage", "1", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
 	{ &g_reduceLightningDamage, "g_reduceLightningDamage", "1", CVAR_ARCHIVE | CVAR_NORESTART, 0, qfalse },
@@ -595,6 +598,7 @@ static cvarTable_t		gameCvarTable[] = {
 	
 	{ &g_mapcycle, "g_mapcycle", "mapcycle.cfg", CVAR_ARCHIVE, 0, qfalse},
 	{ &g_useMapcycle, "g_useMapcycle", "0", CVAR_ARCHIVE | CVAR_LATCH, 0, qfalse},
+	{ &g_mapcycleposition, "g_mapcycleposition", "0", CVAR_ARCHIVE, 0, qfalse},
 	{ &g_allowMultiview, "g_allowMultiview", "1", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qfalse},
 	// demo state
 	//{ &g_demoState, "sv_demoState", "", 0, 0, qfalse },
@@ -1231,6 +1235,7 @@ void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	//elimination:
 	level.roundNumber = 1;
 	level.roundNumberStarted = 0;
+	level.lastRoundStartTime = level.time;
 	level.roundStartTime = level.time+g_elimination_warmup.integer*1000;
 	level.roundRespawned = qfalse;
 	level.eliminationSides = rand()%2; //0 or 1
@@ -2014,7 +2019,7 @@ void ExitLevel (void) {
 	gclient_t *cl;
 	char nextmap[MAX_STRING_CHARS];
 	char d1[MAX_STRING_CHARS];
-	char	command[1024];
+	//char	command[1024];
 	char    mapname[MAX_MAPNAME];
 	char    nextmapname[MAX_MAPNAME];
 
@@ -2035,7 +2040,7 @@ void ExitLevel (void) {
 	}
 	if( g_useMapcycle.integer ){
 	    trap_Cvar_VariableStringBuffer("mapname", mapname, sizeof(mapname));
-      Com_sprintf(nextmapname, sizeof( nextmapname ),"%s", G_GetNextMap(mapname));
+      Com_sprintf(nextmapname, sizeof( nextmapname ),"%s", G_GetNextMapCycle(mapname));
       if( !Q_stricmp( nextmapname, mapname ))  {
           if ( !level.restarted ) {
               trap_SendConsoleCommand( EXEC_APPEND, "map_restart 0\n" );
@@ -2045,10 +2050,13 @@ void ExitLevel (void) {
           }
           return;	
       } else {
+          /*
             Com_sprintf(command, sizeof( command ),"map %s\n", nextmapname );
               trap_Cvar_Set( "g_lockArena", va("%i", G_GetMapLockArena(nextmapname)) );
+	            trap_SendConsoleCommand( EXEC_APPEND, command );
+              */
+          G_GotoNextMapCycle();
       }
-	    trap_SendConsoleCommand( EXEC_APPEND, command );
 	}
 	else {
 	    trap_Cvar_VariableStringBuffer( "nextmap", nextmap, sizeof(nextmap) );
@@ -2374,6 +2382,8 @@ void CheckExitRules( void ) {
 		}
 #else
 		if ( level.time - level.intermissionQueued >= INTERMISSION_DELAY_TIME ) {
+        // if the intermission is already queued and the score gets to a tie we should
+        // overtime instead
 			level.intermissionQueued = 0;
 			BeginIntermission();
 		}
@@ -2581,6 +2591,7 @@ void EndEliminationRound(void)
 	G_SendEliminationStats();
 	DisableWeapons();
 	level.roundNumber++;
+  level.lastRoundStartTime = level.roundStartTime;
 	level.roundStartTime = level.time+1000*g_elimination_warmup.integer;
 	SendEliminationMessageToAllClients();
         CalculateRanks();

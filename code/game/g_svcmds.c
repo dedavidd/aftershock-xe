@@ -611,7 +611,10 @@ struct
   { "switchserverforce", qfalse, GotoOtherServerForce_f },
   { "getmapcycle", qfalse, G_sendMapcycle },
   { "writeMapfile", qfalse, G_WriteMapfile_f },
-  { "loadMapfile", qfalse, G_LoadMapfile_f }
+  { "loadMapfile", qfalse, G_LoadMapfile_f },
+  { "nextmapcycle", qfalse, G_GotoNextMapCycle },
+  { "__pickmap", qfalse, G_PickMap_f},
+  { "callmapvote", qfalse, G_CallMapVote_f}
 };
 
 /*

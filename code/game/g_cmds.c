@@ -413,7 +413,7 @@ void G_SendStats( gentity_t *ent ) {
 	char		entry[2048];
 	char		string[2800];
 	int			stringlength;
-	int			i, j;
+	int			i, j, num = 0;
 	gclient_t	*cl;
 	int			numSorted;
 
@@ -459,13 +459,18 @@ void G_SendStats( gentity_t *ent ) {
 			cl->rewards[REWARD_SPAWNKILL]*/); //TOO much for the engine
 
 		j = strlen(entry);
-		if (stringlength + j > 2048)
-			break;
+		if (stringlength + j > 1000) {
+        // split over several packets
+        trap_SendServerCommand( ent-g_entities, va("prestatistics %i %s", num, string ) );
+        stringlength=0;
+        num = 0;
+    }
 		strcpy (string + stringlength, entry);
 		stringlength += j;
+    num++;
 	}
 
-	trap_SendServerCommand( ent-g_entities, va("statistics %i %s", i, string ) );
+	trap_SendServerCommand( ent-g_entities, va("statistics %i %s", num, string ) );
 }
 
 void G_StartServerDemos( void ) {
@@ -1579,8 +1584,8 @@ void Cmd_Arena_f( gentity_t *ent ) {
     char		s[MAX_TOKEN_CHARS];
     qboolean    force;
     gentity_t *intermission;
-    int clientNum;
-    clientNum = ent-g_entities;
+    //int clientNum;
+    //clientNum = ent-g_entities;
 
     if (!level.multiArenaMap) {
             trap_SendServerCommand( ent-g_entities, "print \"not a multiarena map\n\"" );
@@ -2820,8 +2825,9 @@ void Cmd_Ref_f( gentity_t *ent ) {
 
         if ( g_useMapcycle.integer ) {
             trap_Cvar_VariableStringBuffer("mapname", mapname, sizeof(mapname));
-            Com_sprintf(command, sizeof( command ),"map %s", G_GetNextMap(mapname));
-            Com_sprintf(command, sizeof( command ),"map %s ; set g_lockArena %i", G_GetNextMap(mapname), G_GetMapLockArena(G_GetNextMap(mapname)));
+            Com_sprintf(command, sizeof( command ),"nextmapcycle");
+            //Com_sprintf(command, sizeof( command ),"map %s", G_GetNextMapCycle(mapname));
+            //Com_sprintf(command, sizeof( command ),"map %s ; set g_lockArena %i", G_GetNextMap(mapname), G_GetMapLockArena(G_GetNextMap(mapname)));
             // XXX
         }
         else {
@@ -2951,6 +2957,134 @@ void Cmd_Ref_f( gentity_t *ent ) {
 
     trap_SendConsoleCommand( EXEC_APPEND, va("%s\n", command ) );
 
+}
+
+/*
+==================
+G_CallMapVote_f
+==================
+*/
+void G_CallMapVote_f( void ) {
+    int		i,j;
+    char	arg1[MAX_STRING_TOKENS];
+    char	arg2[MAX_STRING_TOKENS];
+    int curarg;
+    char  entry[256];
+    char  string[256];
+    int stringlength=0;
+    int arena;
+
+
+    trap_Argv( 1, arg1, sizeof( arg1 ) );
+    
+    if (strlen(arg1)!=1 || arg1[0]<'2' || arg1[0]>'9') {
+        G_Printf("callmapvote: not like that\n");
+        return;
+    } else {
+      level.mapVote = atoi(arg1);
+    }
+
+    Com_sprintf (entry, sizeof(entry), "%i ",
+            level.mapVote);
+    j = strlen(entry);
+    strcpy (string + stringlength, entry);
+    stringlength += j;
+    curarg = 2;
+    for (i=0;i<level.mapVote;i++) {
+        trap_Argv( curarg, arg1, sizeof( arg1 ) );
+        trap_Argv( curarg+1, arg2, sizeof( arg2 ) );
+        if (strlen(arg2)!=1 || arg2[0]<'0' || arg2[0]>'9') {
+            arena = 0;
+            curarg++;
+        } else {
+            curarg+=2;
+            arena = atoi(arg2);
+        }
+
+        if (!strlen(arg1)) {
+            // not enough maps as parameter
+            level.mapVote = i;
+            string[0]='0'+i;
+            if (i<2) {
+                G_Printf("callmapvote: not enough maps\n");
+                return;
+            }
+            break;
+        }
+
+        Com_sprintf (entry, sizeof(entry), "%s %i ",
+                arg1,arena);
+        j = strlen(entry);
+        strcpy (string + stringlength, entry);
+        stringlength += j;
+    }
+
+    Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "Select Map: %s", string );
+    Com_sprintf( level.voteString, sizeof( level.voteString ), "__pickmap %s", string );
+
+
+    // start the voting
+    level.voteTime = level.time;
+    level.voteYes = 0;
+    level.voteNo = 0;
+
+    for ( i = 0 ; i < level.maxclients ; i++ ) {
+        level.clients[i].ps.eFlags &= ~EF_VOTED;
+        level.clients[i].vote = 0;
+    }
+    //Do a first count to make sure that numvotingclients is correct!
+    CountVotes(); // this also sets CS_VOTE_YES
+
+    trap_SetConfigstring( CS_VOTE_TIME, va("%i", level.voteTime ) );
+    trap_SetConfigstring( CS_VOTE_STRING, level.voteDisplayString );
+    //trap_SetConfigstring( CS_VOTE_YES, va("%i", level.voteYes ) );
+    //trap_SetConfigstring( CS_VOTE_YES, va("%i", level.voteYes ) );
+    trap_SetConfigstring( CS_VOTE_NO, va("%i", level.voteNo ) );
+}
+
+/*
+==================
+Cmd_CallMapVote_f
+==================
+*/
+void Cmd_CallMapVote_f( gentity_t *ent ) {
+    if ( !g_allowVote.integer ) {
+        trap_SendServerCommand( ent-g_entities, "print \"Voting not allowed here.\n\"" );
+        return;
+    }
+    
+    if( g_allowVote.integer == 3 ) {
+	if ( level.warmupTime != -1 ){
+	    trap_SendServerCommand( ent-g_entities, "print \"Voting only allowed during warmup.\n\"" );
+	    return;
+	}
+    }
+
+    if ( level.voteTime ) {
+        trap_SendServerCommand( ent-g_entities, "print \"A vote is already in progress.\n\"" );
+        return;
+    }
+    if ( ent->client->pers.voteCount >= MAX_VOTE_COUNT ) {
+        trap_SendServerCommand( ent-g_entities, "print \"You have called the maximum number of votes.\n\"" );
+        return;
+    }
+    if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
+        trap_SendServerCommand( ent-g_entities, "print \"Not allowed to call a vote as spectator.\n\"" );
+        return;
+    }
+    if( level.time < g_disableVotingTime.integer * 1000 ) {
+        trap_SendServerCommand( ent-g_entities, va( "print \"You have to wait %i seconds to call a vote.\n\"", g_disableVotingTime.integer ) );
+        return;
+    }
+    if( g_allowVote.integer == 2  ){
+        if ( level.warmupTime != -1 ){
+            trap_SendServerCommand( ent-g_entities, "print \"Voting maps only allowed during warmup.\n\"" );
+            return;
+        }
+    }
+
+    trap_SendServerCommand( -1, va("print \"%s called a vote.\n\"", ent->client->pers.netname ) );
+    G_CallMapVote_f();
 }
 
 /*
@@ -3239,9 +3373,10 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 
         if(g_useMapcycle.integer) {
             trap_Cvar_VariableStringBuffer("mapname", mapname, sizeof(mapname));
-            Com_sprintf(level.voteString, sizeof( level.voteString ),"map %s ; set g_lockArena %i", G_GetNextMap(mapname), G_GetMapLockArena(G_GetNextMap(mapname)));
-            G_Printf("%s\n",level.voteString);
-	        Com_sprintf(level.voteDisplayString, sizeof( level.voteDisplayString ), "%s (%s)", "Next map?", G_GetNextMap(mapname));
+            Com_sprintf(level.voteString, sizeof( level.voteString ),"nextmapcycle");
+            //Com_sprintf(level.voteString, sizeof( level.voteString ),"map %s ; set g_lockArena %i", G_GetNextMap(mapname), G_GetMapLockArena(G_GetNextMap(mapname)));
+            //G_Printf("%s\n",level.voteString);
+	        Com_sprintf(level.voteDisplayString, sizeof( level.voteDisplayString ), "%s (%s)", "Next map?", G_GetNextMapCycle(mapname));
         } else {
             trap_Cvar_VariableStringBuffer( "nextmap", s, sizeof(s) );
             if(!*s) {
@@ -3384,6 +3519,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
     level.voteTime = level.time;
     level.voteYes = 1;
     level.voteNo = 0;
+    level.mapVote = 0;
 
     for ( i = 0 ; i < level.maxclients ; i++ ) {
         level.clients[i].ps.eFlags &= ~EF_VOTED;
@@ -3410,6 +3546,69 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 
 /*
 ==================
+Cmd_MapVote_f
+called indirectly from Cmd_Vote_f
+when a map choose vote is going on.
+==================
+*/
+void Cmd_MapVote_f( gentity_t *ent ) {
+    char		msg[64];
+    int     intention = -1;
+    if ( !level.voteTime || !level.mapVote ) {
+        trap_SendServerCommand( ent-g_entities, "print \"No map vote in progress.\n\"" );
+        return;
+    }
+    if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
+        trap_SendServerCommand( ent-g_entities, "print \"Not allowed to vote as spectator.\n\"" );
+        return;
+    }
+    trap_Argv( 1, msg, sizeof( msg ) );
+
+    if (!strlen(msg)) {
+        trap_SendServerCommand( ent-g_entities, "print \"Vote for which map?.\n\"" );
+        return;
+    }
+
+    if ( msg[0] == 'y' || msg[1] == 'Y' || msg[1] == '1' ) {
+        //ent->client->vote = 1;
+        intention = 1;
+    } else {
+        if ( msg[0] > '0' && msg[0] <= '9') {
+            intention = msg[0] - '0';
+        } else {
+            intention = -1;
+        }
+        //ent->client->vote = -1;
+    }
+
+    if (intention < 1 || intention > level.mapVote) {
+        trap_SendServerCommand( ent-g_entities, va("print \"Vote for which map?. %i is not an option.\n\"" , intention ) );
+        return;
+    }
+
+    if ( ent->client->ps.eFlags & EF_VOTED ) {
+        // remove previous vote if different
+        if (intention == ent->client->vote ) {
+            return;
+        }
+        //trap_SendServerCommand( ent-g_entities, "print \"Vote already cast.\n\"" );
+        //return;
+    }
+    ent->client->ps.eFlags |= EF_VOTED;
+    trap_SendServerCommand( ent-g_entities, "print \"Vote cast.\n\"" );
+
+    ent->client->vote = intention;
+    //Re count the votes
+    CountVotes();
+    // XXX
+
+    // a majority will be determined in CheckVote, which will also account
+    // for players entering or leaving
+}
+
+
+/*
+==================
 Cmd_Vote_f
 ==================
 */
@@ -3418,6 +3617,10 @@ void Cmd_Vote_f( gentity_t *ent ) {
 
     if ( !level.voteTime ) {
         trap_SendServerCommand( ent-g_entities, "print \"No vote in progress.\n\"" );
+        return;
+    }
+    if ( level.mapVote ) {
+        Cmd_MapVote_f( ent );
         return;
     }
     if ( ent->client->ps.eFlags & EF_VOTED ) {
@@ -4063,6 +4266,7 @@ commands_t cmds[ ] =
     // communication commands
     { "tell", CMD_MESSAGE, Cmd_Tell_f, qtrue },
     { "callvote", CMD_MESSAGE, Cmd_CallVote_f, qtrue },
+    { "callmapvote", CMD_MESSAGE, Cmd_CallMapVote_f, qtrue },
     { "callteamvote", CMD_MESSAGE|CMD_TEAM, Cmd_CallTeamVote_f, qtrue },
     { "coinflip", CMD_MESSAGE , Cmd_Coinflip_f, qtrue },
     // can be used even during intermission

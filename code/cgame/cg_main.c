@@ -115,6 +115,7 @@ vmCvar_t	cg_railTrailTime;
 vmCvar_t	cg_centertime;
 vmCvar_t	cg_runpitch;
 vmCvar_t	cg_runroll;
+vmCvar_t	cg_bob;
 vmCvar_t	cg_bobup;
 vmCvar_t	cg_bobpitch;
 vmCvar_t	cg_bobroll;
@@ -426,6 +427,10 @@ vmCvar_t 	cg_oldScoreboard;
 vmCvar_t 	cg_chatBeep;
 vmCvar_t 	cg_teamChatBeep;
 
+vmCvar_t 	cg_fovbase;
+vmCvar_t 	cg_fovbasevertical;
+vmCvar_t 	cg_zoomSensitivityASmode;
+vmCvar_t 	cg_zoomSensitivityAScorrection;
 vmCvar_t 	cg_zoomScaling;
 vmCvar_t 	cg_zoomToggle;
 vmCvar_t 	cg_selfOnTeamOverlay;
@@ -514,6 +519,7 @@ static cvarTable_t cvarTable[] = { // bk001129
 	{ &cg_centertime, "cg_centertime", "3", CVAR_CHEAT },
 	{ &cg_runpitch, "cg_runpitch", "0.002", CVAR_ARCHIVE},
 	{ &cg_runroll, "cg_runroll", "0.005", CVAR_ARCHIVE },
+	{ &cg_bob , "cg_bob", "0", CVAR_ARCHIVE },
 	{ &cg_bobup , "cg_bobup", "0.005", CVAR_CHEAT },
 	{ &cg_bobpitch, "cg_bobpitch", "0.002", CVAR_ARCHIVE },
 	{ &cg_bobroll, "cg_bobroll", "0.002", CVAR_ARCHIVE },
@@ -760,6 +766,10 @@ static cvarTable_t cvarTable[] = { // bk001129
 	{&cg_oldScoreboard, "cg_oldScoreboard", "0", CVAR_ARCHIVE },
 	{&cg_chatBeep, "cg_chatBeep", "1", CVAR_ARCHIVE },
 	{&cg_teamChatBeep, "cg_teamChatBeep", "1", CVAR_ARCHIVE },
+	{&cg_fovbase, "cg_fovbase", "115", CVAR_ARCHIVE },
+	//{&cg_fovbasevertical, "cg_fovbasevertical", "75", CVAR_ARCHIVE }, // removed because confusing people
+	{&cg_zoomSensitivityASmode, "cg_zoomSensitivityASmode", "0", CVAR_ARCHIVE },
+	{&cg_zoomSensitivityAScorrection, "cg_zoomSensitivityAScorrection", "1.0", CVAR_ARCHIVE },
 	{&cg_zoomScaling, "cg_zoomScaling", "1", CVAR_ARCHIVE },
 	{&cg_zoomToggle, "cg_zoomToggle", "0", CVAR_ARCHIVE },
 	{&cg_selfOnTeamOverlay, "cg_selfOnTeamOverlay", "1", CVAR_ARCHIVE },

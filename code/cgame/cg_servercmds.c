@@ -34,6 +34,7 @@ typedef struct {
 
 char	gameString[128];
 
+
 void CG_SetGameString ( void ) {
     qtime_t	now;
     char		*mapname;
@@ -171,8 +172,10 @@ static void CG_EndOfGame ( void ) {
         trap_SendConsoleCommand ( cmd );
         CG_Printf ( cmd );
     }
-    if ( cg_autoaction.integer & 4 )
+    if ( cg_autoaction.integer & 4 ) {
+        clientStatsPresent = 0;
         trap_SendConsoleCommand ( "stats;" );
+    }
 }
 
 /*
@@ -416,6 +419,37 @@ static float accuracy ( int shots, int hits ) {
     return acc;
 }
 
+
+// global to store received stats for cg_autoaction 4
+#define NUM_DATA_STATS 59
+#define FIRST_DATA_STATS 1
+#define NUM_WEAPONDATA_STATS 5
+int		clientStats[MAX_CLIENTS][STATISTIC_MAX];
+int   clientStatsPresent;
+
+/*
+=================
+CG_PreParseStatistics
+
+=================
+*/
+static void CG_PreParseStatistics ( void ) {
+    int		i, j, numStats;
+
+    numStats = atoi ( CG_Argv ( 1 ) );
+    if ( numStats+clientStatsPresent > MAX_CLIENTS ) {
+        numStats = MAX_CLIENTS-clientStatsPresent;
+    }
+    for ( i = clientStatsPresent ; i < clientStatsPresent+numStats ; i++ ) {
+
+        for ( j = 0; j < STATISTIC_MAX; j++ ) {
+            clientStats[i][j] = atoi ( CG_Argv ( (i-clientStatsPresent) * NUM_DATA_STATS + FIRST_DATA_STATS + 1 + j ) );
+        }
+    }
+    clientStatsPresent = i;
+
+}
+
 /*
 =================
 CG_ParseStatistics
@@ -433,7 +467,6 @@ static void CG_ParseStatistics ( void ) {
     int		clientnum;
     char		*mapname;
     char		*buf;
-    int		clientStats[MAX_CLIENTS][STATISTIC_MAX];
 
     char *gameNames[] = {
         "FFA",
@@ -452,13 +485,17 @@ static void CG_ParseStatistics ( void ) {
     };
 
     numStats = atoi ( CG_Argv ( 1 ) );
-    if ( numStats > MAX_CLIENTS ) {
-        numStats = MAX_CLIENTS;
+    if ( numStats+clientStatsPresent > MAX_CLIENTS ) {
+        numStats = MAX_CLIENTS-clientStatsPresent;
     }
+    for ( i = clientStatsPresent ; i < clientStatsPresent+numStats ; i++ ) {
 
-#define NUM_DATA_STATS 59
-#define FIRST_DATA_STATS 1
-#define NUM_WEAPONDATA_STATS 5
+        for ( j = 0; j < STATISTIC_MAX; j++ ) {
+            clientStats[i][j] = atoi ( CG_Argv ( (i-clientStatsPresent) * NUM_DATA_STATS + FIRST_DATA_STATS + 1 + j ) );
+        }
+    }
+    clientStatsPresent = i;
+    numStats = i;
 
     mapname = strchr ( cgs.mapname, '/' );
     mapname++;
@@ -497,12 +534,6 @@ static void CG_ParseStatistics ( void ) {
     }
 
 
-    for ( i = 0 ; i < numStats ; i++ ) {
-
-        for ( j = 0; j < STATISTIC_MAX; j++ ) {
-            clientStats[i][j] = atoi ( CG_Argv ( i * NUM_DATA_STATS + FIRST_DATA_STATS + 1 + j ) );
-        }
-    }
 
     for ( i = 0; i < numStats; i++ ) {
 
@@ -1242,7 +1273,11 @@ static void CG_ConfigStringModified ( void ) {
         cgs.voteTime = atoi ( str );
         cgs.voteModified = qtrue;
     } else if ( num == CS_VOTE_YES ) {
-        cgs.voteYes = atoi ( str );
+        if (strlen(str)==1) {
+            cgs.voteYes = atoi ( str );
+        } else {
+            Q_strncpyz ( cgs.voteYesString, str, sizeof ( cgs.voteYesString ) );
+        }
         cgs.voteModified = qtrue;
     } else if ( num == CS_VOTE_NO ) {
         cgs.voteNo = atoi ( str );
@@ -2080,6 +2115,11 @@ static void CG_ServerCommand ( void ) {
     }
     if ( !strcmp ( cmd, "scores" ) ) {
         CG_ParseScores();
+        return;
+    }
+
+    if ( !strcmp ( cmd, "prestatistics" ) ) {
+        CG_PreParseStatistics();
         return;
     }
 

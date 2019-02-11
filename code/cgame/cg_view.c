@@ -378,19 +378,21 @@ static void CG_OffsetFirstPersonView( void ) {
 
     // add angles based on bob
 
-    // make sure the bob is visible even at low speeds
-    speed = cg.xyspeed > 200 ? cg.xyspeed : 200;
+	if ( cg_bob.integer ) {
+        // make sure the bob is visible even at low speeds
+        speed = cg.xyspeed > 200 ? cg.xyspeed : 200;
 
-    delta = cg.bobfracsin * cg_bobpitch.value * speed;
-    if (cg.predictedPlayerState.pm_flags & PMF_DUCKED)
-        delta *= 3;		// crouching
-    angles[PITCH] += delta;
-    delta = cg.bobfracsin * cg_bobroll.value * speed;
-    if (cg.predictedPlayerState.pm_flags & PMF_DUCKED)
-        delta *= 3;		// crouching accentuates roll
-    if (cg.bobcycle & 1)
-        delta = -delta;
-    angles[ROLL] += delta;
+        delta = cg.bobfracsin * cg_bobpitch.value * speed;
+        if (cg.predictedPlayerState.pm_flags & PMF_DUCKED)
+            delta *= 3;		// crouching
+        angles[PITCH] += delta;
+        delta = cg.bobfracsin * cg_bobroll.value * speed;
+        if (cg.predictedPlayerState.pm_flags & PMF_DUCKED)
+            delta *= 3;		// crouching accentuates roll
+        if (cg.bobcycle & 1)
+            delta = -delta;
+        angles[ROLL] += delta;
+	}
 
 //===================================
 
@@ -403,15 +405,15 @@ static void CG_OffsetFirstPersonView( void ) {
         cg.refdef.vieworg[2] -= cg.duckChange
                                 * (DUCK_TIME - timeDelta) / DUCK_TIME;
     }
-
-    // add bob height
-    bob = cg.bobfracsin * cg.xyspeed * cg_bobup.value;
-    if (bob > 6) {
-        bob = 6;
-    }
-
-    origin[2] += bob;
-
+    
+	if ( cg_bob.integer ) {
+        // add bob height
+        bob = cg.bobfracsin * cg.xyspeed * cg_bobup.value;
+		if (bob > 6) {
+            bob = 6;                        
+       }
+       origin[2] += bob;
+    }    
 
     // add fall height
     delta = cg.time - cg.landTime;
@@ -509,9 +511,11 @@ static int CG_CalcFov( void ) {
 	int     zoomed;
 	int     zoomed_tmp;
 
+    f = 2.1;
     if ( cg.predictedPlayerState.pm_type == PM_INTERMISSION ) {
         // if in intermission, use a fixed value
         fov_x = 90;
+        zoomed = qfalse;
     } else {
         // user selectable
         if ( cgs.dmflags & DF_FIXED_FOV ) {
@@ -612,10 +616,46 @@ static int CG_CalcFov( void ) {
     cg.refdef.fov_x = fov_x;
     cg.refdef.fov_y = fov_y;
 
+    // set the zoom mouse sensitivity factor that will be passed on to the engine.
+    // cg_zoomSensitivityASmode default 0 which algorithm to use
+                // 0 old q3 / openarena algorithm based on vertical fov
+                // 1 based on ods formula from http://openarena.wikia.com/wiki/Configuration_examples/Scale_mouse_sensitivity_with_zoom
+                // 2 based on ods formula but also calculated when unzoomed for people with a fov for each weapon
+                // 3 similar to the old q3 but based on horizontal fov_x and also calculated unzoomed
+    // cg_zoomSensitivityAScorrection default 1.0 factor applied after the algorithm to do fine tuning
+    // cg_fovbase default 115 asume the sensitivity is set for this horizontal fov
     if ( !zoomed ) {
-        cg.zoomSensitivity = 1;
+        // no longer zoomed, revert to sensitivity for normal fov
+        switch (cg_zoomSensitivityASmode.integer) {
+            default:
+            case 0:
+            case 1:
+                cg.zoomSensitivity = 1;
+                break;
+            case 2:
+                cg.zoomSensitivity = tan(cg.refdef.fov_x * M_PI/360.0) /tan(cg_fovbase.value * M_PI/360.0)  ;
+                break;
+            case 3:
+                cg.zoomSensitivity = cg.refdef.fov_x  /cg_fovbase.value ;
+                break;
+        }
     } else {
-        cg.zoomSensitivity = cg.refdef.fov_y / 75.0;
+        // zoomed, set sensitivity lower to get the same mouse feel when zoomed, 
+        switch (cg_zoomSensitivityASmode.integer) {
+            default:
+            case 0:
+                // old q3 / openarena algorithm based on vertical fov
+                // cg.zoomSensitivity = cg_zoomSensitivityAScorrection.value * cg.refdef.fov_y / cg_fovbasevertical.value;
+                cg.zoomSensitivity = cg_zoomSensitivityAScorrection.value * cg.refdef.fov_y / 75.0;
+                break;
+            case 1:
+            case 2:
+                cg.zoomSensitivity = cg_zoomSensitivityAScorrection.value * tan(cg.refdef.fov_x * M_PI/360.0) /tan(cg_fovbase.value * M_PI/360.0)  ;
+                break;
+            case 3:
+                cg.zoomSensitivity = cg_zoomSensitivityAScorrection.value * cg.refdef.fov_x  /cg_fovbase.value ;
+                break;
+        }
     }
 
     return inwater;

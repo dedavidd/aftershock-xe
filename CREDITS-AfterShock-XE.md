@@ -17,7 +17,8 @@ of other people's stuff
 - [**(more recent) OpenArena gamecode
 (OAX)**](https://github.com/OpenArena/gamecode) - `g_gravityModifier`,
 `g_timestamp`and GCC-4.8+ compatibility by
-[**sago007**](https://github.com/sago007)
+[**sago007**](https://github.com/sago007), `cg_bob` by
+[**Jabba**](https://github.com/ldrone)
 - [**cpm1_dev_docs
 tutorial**](http://games.linuxdude.com/tamaps/archive/cpm1_dev_docs/) -
 CPM ruleset

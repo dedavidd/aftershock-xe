@@ -412,7 +412,7 @@ void CheckVote( void ) {
 			// execute the command, then remove the vote
 			trap_SendServerCommand( -1, "print \"Vote passed.\n\"" );
 			level.voteExecuteTime = level.time + 3000;
-		} else if ( level.voteNo >= (level.numVotingClients)/2 ) {
+		} else if ( level.voteNo >0 && level.voteNo >= (level.numVotingClients)/2 ) {
 			// same behavior as a timeout
 			trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
 		} else {
@@ -426,6 +426,94 @@ void CheckVote( void ) {
 }
 
 /*
+ * G_PickMap_f
+Internal function of mapchooser.
+usage: __pickmap <nummaps> [ <mapname1> <arena1> ] * nummaps
+assumes nummaps < 10;
+*/
+
+
+void G_PickMap_f ( void ) {
+	char		str[MAX_TOKEN_CHARS];
+  int     len,num,i;
+  int     tmp;
+  int     winner=0,winamount=0;
+  int     arena;
+  int     nummaps;
+	trap_Argv( 1, str, sizeof( str ) );
+	//trap_Argv( 2, otherserver, sizeof( otherserver ) );
+  if ( strlen(str) != 1 || str[0]<'0' || str[0]>'9' ) {
+      G_Printf("pickmap is an internal function part of the mapchooser system\n");
+      return;
+  }
+  nummaps = atoi(str);
+  
+  // parse the vote_yes string to pick the winner
+  trap_GetConfigstring(CS_VOTE_YES, str, sizeof( str ));
+  len = strlen(str);
+  if (len<(nummaps+1)*2) {
+      G_Printf("pickmap expected more data in CS_VOTE_YES\n");
+      return;
+  }
+  i = str[0]-'0';
+  if (i!=nummaps || str[1]!=' ') {
+      G_Printf("pickmap expected different nummaps in CS_VOTE_YES %s\n",str);
+      return;
+  }
+  // use i to scan the CS_VOTE_YES string, num is the current option we are looking at
+  // tmp is the parsed decimal value of the current option
+  i=2;
+  num=1;
+  tmp=0;
+  while (i<len) {
+      if (str[i]==' ') {
+          if (str[i-1]!=' ' && tmp>winamount) {
+              winner=num;
+              winamount=tmp;
+          } 
+          tmp=0;
+          num++;
+      } else if (str[i]>='0' && str[i]<='9') {
+          tmp*=10;
+          tmp += str[i]-'0';
+      } else {
+          G_Printf("pickmap expected different data in CS_VOTE_YES %s\n",str);
+          return;
+      }
+
+      i++;
+  }
+  // the last trailing space in CS_VOTE_YES will set num one higher than the nummaps
+  if (num!=nummaps+1) {
+      G_Printf("pickmap expected different nummaps, found %i not %i after in CS_VOTE_YES %s\n",num,nummaps,str);
+      return;
+  }
+
+  if (winner<=0) {
+      G_Printf("pickmap found no winner in CS_VOTE_YES\n");
+      return;
+  }
+
+  // winner found
+  // arena
+	trap_Argv( 2 + ((winner-1)*2) + 1, str, sizeof( str ) );
+  if ( strlen(str) != 1 || str[0]<'0' || str[0]>'9' ) {
+      G_Printf("pickmap lockarena or 0 expected at arg %i\n", 2 + ((winner-1)*2) + 1);
+      return;
+  }
+  arena = atoi(str);
+	trap_Argv( 2 + ((winner-1)*2) + 0, str, sizeof( str ) );
+
+  if (arena > 0) {
+      trap_SendConsoleCommand( EXEC_APPEND, va("map %s; g_lockArena %i",str,arena));
+  } else {
+      trap_SendConsoleCommand( EXEC_APPEND, va("map %s",str));
+  }
+
+
+}
+
+/*
 ==================
 CountVotes
 
@@ -433,8 +521,19 @@ CountVotes
 ==================
 */
 void CountVotes( void ) {
-    int i;
+    int i,j;
     int yes=0,no=0;
+    int mapVotes[10];
+    //int winner=0;
+    int winamount=0;
+    // very short string
+    char string[64],entry[6];
+    int stringlength=0;
+    if (level.mapVote) {
+        for (i=0;i<level.mapVote+1;i++) {
+            mapVotes[i]=0;
+        }
+    }
 
     level.numVotingClients=0;
 
@@ -451,24 +550,61 @@ void CountVotes( void ) {
             //The client can vote
             level.numVotingClients++;
 
-            //Did the client vote yes?
-            if(level.clients[i].vote>0)
-                yes++;
+            // map choose vote going on, count differently
+            if (level.mapVote) {
+                if(level.clients[i].vote>0 && level.clients[i].vote<=level.mapVote) {
+                    mapVotes[level.clients[i].vote]++;
+                }
+            } else {
+                //Did the client vote yes?
+                if(level.clients[i].vote>0)
+                    yes++;
 
-            //Did the client vote no?
-            if(level.clients[i].vote<0)
-                no++;
+                //Did the client vote no?
+                if(level.clients[i].vote<0)
+                    no++;
+            }
     }
 
-    //See if anything has changed
-    if(level.voteYes != yes) {
-        level.voteYes = yes;
-        trap_SetConfigstring( CS_VOTE_YES, va("%i", level.voteYes ) );
-    }
+    if (level.mapVote) {
 
-    if(level.voteNo != no) {
-        level.voteNo = no;
-        trap_SetConfigstring( CS_VOTE_NO, va("%i", level.voteNo ) );
+        // first in string is number of maps to choose from
+        Com_sprintf (entry, sizeof(entry), "%i ",
+                level.mapVote);
+        j = strlen(entry);
+        strcpy (string + stringlength, entry);
+        stringlength += j;
+        // next in string voteamount for each map
+        for (i=1;i<level.mapVote+1;i++) {
+            if(mapVotes[i]>winamount) {
+                //winner = i;
+                winamount = mapVotes[i];
+            }
+            Com_sprintf (entry, sizeof(entry), "%i ",
+                    mapVotes[i]);
+            j = strlen(entry);
+            strcpy (string + stringlength, entry);
+            stringlength += j;
+        }
+        level.voteYes = winamount;
+
+        trap_SetConfigstring( CS_VOTE_YES, va("%s", string ) );
+
+        // TODO: maybe add another config string for this instead of abusing CS_VOTE_YES
+        // cleaner but that will break demo playback
+        //trap_SetConfigstring( CS_VOTE_MAP, va("%s", string ) );
+    } else {
+        // not a mapvote but regular vote
+        //See if anything has changed
+        if(level.voteYes != yes) {
+            level.voteYes = yes;
+            trap_SetConfigstring( CS_VOTE_YES, va("%i", level.voteYes ) );
+        }
+
+        if(level.voteNo != no) {
+            level.voteNo = no;
+            trap_SetConfigstring( CS_VOTE_NO, va("%i", level.voteNo ) );
+        }
     }
 }
 

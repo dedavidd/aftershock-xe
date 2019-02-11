@@ -1328,6 +1328,7 @@ typedef struct {
 
 	int				voteTime;
 	int				voteYes;
+	char			voteYesString[MAX_STRING_TOKENS];
 	int				voteNo;
 	qboolean		voteModified;			// beep whenever changed
 	char			voteString[MAX_STRING_TOKENS];
@@ -1492,6 +1493,7 @@ extern	markPoly_t		cg_markPolys[MAX_MARK_POLYS];
 extern	vmCvar_t		cg_centertime;
 extern	vmCvar_t		cg_runpitch;
 extern	vmCvar_t		cg_runroll;
+extern	vmCvar_t		cg_bob;
 extern	vmCvar_t		cg_bobup;
 extern	vmCvar_t		cg_bobpitch;
 extern	vmCvar_t		cg_bobroll;
@@ -1800,8 +1802,13 @@ extern vmCvar_t			cg_plasmaTrail;
 
 extern vmCvar_t 		cg_oldScoreboard;
 
+extern vmCvar_t   	cg_fovbase;
+// extern vmCvar_t 	  cg_fovbasevertical; // removed because was confusing
+
 extern vmCvar_t			cg_chatBeep;
 extern vmCvar_t			cg_teamChatBeep;
+extern vmCvar_t    	cg_zoomSensitivityASmode;
+extern vmCvar_t 	cg_zoomSensitivityAScorrection;
 extern vmCvar_t			cg_zoomScaling;
 extern vmCvar_t 		cg_zoomToggle;
 extern vmCvar_t			cg_selfOnTeamOverlay;
@@ -2162,6 +2169,8 @@ void CG_InitConsoleCommands( void );
 //
 // cg_servercmds.c
 //
+extern int  clientStatsPresent;
+
 void CG_ExecuteNewServerCommands( int latestSequence );
 void CG_ParseServerinfo( void );
 void CG_SetConfigValues( void );

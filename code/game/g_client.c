@@ -797,6 +797,170 @@ team_t TeamHealthCount(int ignoreClientNum, int team ) {
 }
 
 
+
+/*
+================
+RespawnRedRoverAllDead
+
+Forces all or dead clients to respawn,
+but takes redrover rules into account.
+================
+*/
+
+void RespawnRedRoverAllDead(qboolean onlydead)
+{
+	int i,j;
+  int k,l;
+	gentity_t	*client;
+  int countRed,countBlue;
+  int numleavedead;
+	countRed = TeamCount(-1,TEAM_RED);
+	countBlue = TeamCount(-1,TEAM_BLUE);
+  if ((countRed == countBlue)||(level.intermissiontime)) {
+      numleavedead = 0;
+  } else {
+      int team;
+      int candidates=0;
+      numleavedead = countRed - countBlue;
+      if (numleavedead>0) {
+          team = TEAM_RED;
+      } else {
+          numleavedead *= -1;
+          team = TEAM_BLUE;
+      }
+      for(i=0;i<level.maxclients;i++)
+      {
+
+          if ( level.clients[i].pers.connected == CON_DISCONNECTED ) {
+              continue;
+          }
+          if ( level.clients[i].pers.connected == CON_CONNECTING) {
+              continue;
+          }
+          if ( level.clients[i].sess.sessionTeam != team ) {
+              continue;
+          }
+          // we found a client of the team that needs redrovering
+          // skip players that survived
+          if ( level.clients[i].isEliminated == qfalse ){
+              continue;
+          }
+          // first that are found get added
+          if (candidates<numleavedead) {
+              level.leavedead[candidates++] = i;
+              continue;
+          }
+          // check if this player is more suitable than the current candidates
+          k = i;
+          for (j=0;j<numleavedead;j++) {
+              l = level.leavedead[j];
+              if (level.clients[l].lastKilledTime > level.clients[k].lastKilledTime) {
+                  // candidate died more recent than this player
+                  // prefer the players that survived longest last round
+                  // to play
+                  if (level.clients[k].lastKilledTime > level.lastRoundStartTime) {
+                      // this player played last round but died earlier, replace this candidate
+                      level.leavedead[j] = k;
+                      k = l;
+                  }
+              } else {
+                  // this player died more recent than candidate
+                  // prefer the longest waiting players that did not play last round
+                  // to play
+                  if (level.clients[l].lastKilledTime < level.lastRoundStartTime) {
+                      // candidate did not play last round , replace this candidate
+                      level.leavedead[j] = k;
+                      k = l;
+                  }
+              }
+          } // for j
+      } // for i
+      if (countRed && countBlue) {
+          // skip if one of the teams is empty
+          while (!onlydead && candidates<numleavedead) {
+              // more people alive than should, make some people spectator
+              k = rand() % (TeamLivingCount(-1,team));
+              l = 0;
+              for(i=0;i<level.maxclients;i++)
+              {
+
+                  if ( level.clients[i].pers.connected == CON_DISCONNECTED ) {
+                      continue;
+                  }
+                  if ( level.clients[i].pers.connected == CON_CONNECTING) {
+                      continue;
+                  }
+                  if ( level.clients[i].sess.sessionTeam != team ) {
+                      continue;
+                  }
+                  if ( level.clients[i].isEliminated == qtrue ){
+                      continue;
+                  }
+                  // found an alive player that we can eliminate this round
+                  if (l == k) {
+                      level.leavedead[candidates++] = i;
+                      client = g_entities + i;
+	                    client->client->ps.stats[STAT_HEALTH] = client->health = -999;
+                      player_die(client, client, client, 100000, MOD_SUICIDE);
+                      client->client->ps.persistant[PERS_KILLED]--;
+                      level.clients[i].lastKilledTime = level.lastRoundStartTime + 10;
+                      level.clients[i].respawnTime = level.roundStartTime + 10;
+                      //level.clients[i].isEliminated = qtrue; 
+                      G_Printf("killing %s dead for redrover\n" , client->client->pers.netname);
+                      break;
+                  }
+                  l++;
+              } // for i 
+          } // while not enough candidates
+      } // if both teams have players
+  } // if unbalanced
+
+	for(i=0;i<level.maxclients;i++)
+  {
+      qboolean redroverspec = qfalse;
+
+      if ( level.clients[i].pers.connected == CON_DISCONNECTED ) {
+          continue;
+      }
+      if ( level.clients[i].pers.connected == CON_CONNECTING) {
+          continue;
+      }
+      client = g_entities + i;
+      if (onlydead) {
+          client->client->pers.livesLeft = g_lms_lives.integer-1;
+          if ( level.clients[i].isEliminated == qfalse ){
+              continue;
+          }
+      }
+      if ( level.clients[i].sess.sessionTeam == TEAM_SPECTATOR ) {
+          continue;
+      }
+      for (j=0;j<numleavedead;j++) {
+          if (level.leavedead[j]==i) {
+              redroverspec=qtrue;
+              break;
+          }
+      }
+      if (redroverspec) {
+          // not playing this round
+          if (!onlydead) {
+              // only send this once
+			        trap_SendServerCommand( i , va("screenPrint \"" S_COLOR_RED "You are not playing this round (benched)\"") );
+          }
+          client->client->ps.pm_type = PM_SPECTATOR;
+          continue;
+      }
+
+      client->client->ps.pm_type = PM_NORMAL;
+      client->client->pers.livesLeft = g_lms_lives.integer;
+
+      respawnRound(client);
+  }
+	return;
+}
+
+
+
 /*
 ================
 RespawnAll
@@ -809,6 +973,10 @@ void RespawnAll(void)
 {
 	int i;
 	gentity_t	*client;
+  if (g_redrover.integer) {
+      RespawnRedRoverAllDead(qfalse);
+      return;
+  }
 	for(i=0;i<level.maxclients;i++)
 	{
 		if ( level.clients[i].pers.connected == CON_DISCONNECTED ) {
@@ -842,6 +1010,10 @@ void RespawnDead(void)
 {
 	int i;
 	gentity_t	*client;
+  if (g_redrover.integer) {
+      RespawnRedRoverAllDead(qtrue);
+      return;
+  }
 	for(i=0;i<level.maxclients;i++)
 	{
 		
